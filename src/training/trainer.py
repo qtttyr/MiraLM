@@ -39,12 +39,14 @@ class Trainer:
         train_cfg: TrainingConfig,
         loader: PackedDataLoader,
         ckpt_dir: Path,
+        tokenizer=None,
     ):
         self.cfg = cfg
         self.tc = train_cfg
         self.loader = loader
         self.ckpt_dir = Path(ckpt_dir)
         self.ckpt_dir.mkdir(parents=True, exist_ok=True)
+        self.tokenizer = tokenizer
 
         torch.manual_seed(train_cfg.seed)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -166,7 +168,22 @@ class Trainer:
         wrapper = MiraLMForCausalLM(MiraConfig.from_model_config(self.cfg))
         wrapper.model.load_state_dict(self.model.state_dict(), strict=True)
         wrapper.save_pretrained(str(path), safe_serialization=True)
+        if self.tokenizer is not None:
+            tok_path = path / "tokenizer.json"
+            if not tok_path.exists():
+                self.tokenizer.save(tok_path)
+            # also write tokenizer_config.json for AutoTokenizer compatibility
+            tc_path = path / "tokenizer_config.json"
+            if not tc_path.exists():
+                import json as _json
+                tc_path.write_text(_json.dumps({
+                    "bos_token": "eos",
+                    "eos_token": "eos",
+                    "pad_token": "<|pad|>",
+                    "unk_token": " unk",
+                    "model_max_length": 1024,
+                }, indent=2), encoding="utf-8")
         meta = {"step": self.step_num, "loss": loss}
-        import json
-        (path / "train_meta.json").write_text(json.dumps(meta), encoding="utf-8")
+        import json as _json2
+        (path / "train_meta.json").write_text(_json2.dumps(meta), encoding="utf-8")
         print(f"  saved checkpoint: {path} (step={self.step_num}, loss={loss:.4f})")
