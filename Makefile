@@ -1,7 +1,7 @@
 PY ?= .venv/bin/python
 SAMPLE ?= configs/model_sparsemind.yaml
 
-.PHONY: setup params check test prepare-data train finetune eval
+.PHONY: setup params check test prepare-data train build-sft finetune eval demo screenshots
 
 ## bootstrap: create venv and install requirements
 setup:
@@ -47,3 +47,14 @@ finetune:
 eval:
 	$(PY) scripts/eval_harness.py --ckpt-dir checkpoints/mira-sft/last \
 		--output results/eval_mira.json --batch-size 4
+
+## interactive structured-output demo
+demo:
+	$(PY) scripts/demo.py --ckpt-dir checkpoints/mira-sft/last --all
+
+## render submission screenshots (heatmap + curves + demo table)
+screenshots:
+	$(PY) scripts/make_screenshots.py --ckpt-dir checkpoints/mira/last \
+		--sft-ckpt checkpoints/mira-sft/last \
+		--trace checkpoints/mira/trace.csv \
+		--out-dir results/screenshots
