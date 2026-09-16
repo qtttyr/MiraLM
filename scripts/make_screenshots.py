@@ -6,10 +6,10 @@ Screenshots produced:
   3. demo_outputs.png    — JSON / SQL / CoT example answers rendered as a table
 
 Usage:
-    python scripts/make_screenshots.py \
-        --ckpt-dir   checkpoints/mira/last   \   # pretrained (heatmap)
-        --sft-ckpt   checkpoints/mira-sft/last \ # SFT (demo outputs)
-        --trace      checkpoints/mira/trace.csv  \ # trainer CSV
+    python scripts/make_screenshots.py \\
+        --ckpt-dir   checkpoints/mira/last \\
+        --sft-ckpt   checkpoints/mira-sft/last \\
+        --trace      checkpoints/mira/trace.csv \\
         --out-dir    results/screenshots
 """
 
