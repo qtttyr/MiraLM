@@ -123,9 +123,9 @@ class Trainer:
             self.optimizer.param_groups[0]["lr"] = lr
             self.optimizer.param_groups[1]["lr"] = lr
 
-            if (self.step_num + 1) % self.tc.log_interval == 0:
+            if self.tc.log_interval > 0 and (self.step_num + 1) % self.tc.log_interval == 0:
                 self._log(self.step_num + 1, lr, float(loss.detach()), accum_metrics)
-            if (self.step_num + 1) % self.tc.save_interval == 0:
+            if self.tc.save_interval > 0 and (self.step_num + 1) % self.tc.save_interval == 0:
                 avg = float(loss.detach())
                 self.save_checkpoint(self.ckpt_dir / "last", avg)
                 if avg < self.best_loss:
