@@ -59,6 +59,7 @@ def mamba_block_unit(cfg: ModelConfig) -> int:
         + st * di                  # A_log
         + di                       # D
         + di * d                   # out_proj
+        + d                        # pre-norm RMSNorm (inside the block)
     )
 
 
@@ -92,12 +93,8 @@ def build_lines(cfg: ModelConfig) -> list[BudgetLine]:
 
     if cfg.use_mamba:
         lines.append(BudgetLine(
-            "Mamba block (SSM)", cfg.n_mamba_layers, mamba_block_unit(cfg),
-            "in_proj + depthwise-conv + x_proj + dt_proj + A_log + D + out_proj",
-        ))
-        lines.append(BudgetLine(
-            "Mamba pre-norm (RMSNorm)", cfg.n_mamba_layers, d,
-            "1 × d_model per mamba block",
+            "Mamba block (SSM, incl. pre-norm)", cfg.n_mamba_layers, mamba_block_unit(cfg),
+            "in_proj + depthwise-conv + x_proj + dt_proj + A_log + D + out_proj + norm",
         ))
 
     lines.append(BudgetLine(
@@ -195,7 +192,8 @@ def main() -> int:
         out = results_dir / f"param_budget_{cfg.model_type}.txt"
         out.write_text(text + "\n", encoding="utf-8")
         summary = results_dir / "param_budget_master.txt"
-        with open(summary, "a", encoding="utf-8") as f:
+        mode = "w" if cfg_path == configs[0] else "a"
+        with open(summary, mode, encoding="utf-8") as f:
             f.write(f"{cfg.name}\t{total:,}\t{active:,}\t{'PASS' if ok else 'FAIL'}\t{cfg_path}\n")
 
         if not ok:

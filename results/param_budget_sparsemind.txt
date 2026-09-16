@@ -6,8 +6,7 @@
 │ component                         count   unit params    total params   formula           │
 │ -------------------------------- ------ ------------- ---------------   ----------------------│
 │ Embedding (tied, output head shared)      1     9,216,000       9,216,000   vocab_size × d_model│
-│ Mamba block (SSM)                     7     1,000,704       7,004,928   in_proj + depthwise-conv + x_proj + dt_proj + A_log + D + out_proj│
-│ Mamba pre-norm (RMSNorm)              7           384           2,688   1 × d_model per mamba block│
+│ Mamba block (SSM, incl. pre-norm)      7     1,001,088       7,007,616   in_proj + depthwise-conv + x_proj + dt_proj + A_log + D + out_proj + norm│
 │ Attention block (GQA + RoPE + SwiGLU)      7     2,802,432      19,617,024   q/o + k/v projections + SwiGLU(3·d·d_ff) + 2 norms│
 │ MoE experts (SWiGLU)                  8     1,474,560      11,796,480   3 · d_model · expert_dim per expert│
 │ MoE router + semantic biases          1         3,080           3,080   d_model · n_experts + n_experts biases│
