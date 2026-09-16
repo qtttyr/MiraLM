@@ -7,3 +7,32 @@ Modules:
     architecture.py  hybrid stack + MoE capstone + weight tying
     hf_interface.py  HuggingFace wrapper required by lm-evaluation-harness
 """
+
+from .architecture import MiraLM, ModelOutput
+from .attention import AttentionBlock, GroupedQueryAttention, RMSNorm, RotaryEmbedding, SwiGLUFFN
+from .mamba_block import MambaBlock, selective_scan_sequential, pscan
+from .moe import MoECapstone, Router, z_loss, load_balance_loss, guide_loss, EXPERT_DOMAINS
+from .hf_interface import MiraConfig, MiraLMForCausalLM, register_mira, MODEL_TYPE
+
+__all__ = [
+    "MiraLM",
+    "ModelOutput",
+    "AttentionBlock",
+    "GroupedQueryAttention",
+    "RMSNorm",
+    "RotaryEmbedding",
+    "SwiGLUFFN",
+    "MambaBlock",
+    "selective_scan_sequential",
+    "pscan",
+    "MoECapstone",
+    "Router",
+    "z_loss",
+    "load_balance_loss",
+    "guide_loss",
+    "EXPERT_DOMAINS",
+    "MiraConfig",
+    "MiraLMForCausalLM",
+    "register_mira",
+    "MODEL_TYPE",
+]
