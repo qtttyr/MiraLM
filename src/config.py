@@ -47,6 +47,36 @@ class MoEConfig:
 
 
 @dataclass
+class TrainingConfig:
+    """Training hyper-parameters (does NOT affect the parameter budget)."""
+
+    max_steps: int = 20000
+    batch_size: int = 8          # sequences per optimizer step
+    micro_batch: int = 4         # sequences per forward/backward (grad accum)
+    max_lr: float = 1e-3
+    min_lr: float = 1e-4
+    warmup_frac: float = 0.01
+    weight_decay: float = 0.1
+    grad_clip: float = 1.0
+    precision: str = "fp16"      # fp16 (T4) | bf16 (A100/H100) | fp32
+    guide_steps: int = 2000      # MoE guide-curriculum horizon
+    guide_ramp: int = 200        # cosine ramp-in/out for the guide weight
+    log_interval: int = 20
+    save_interval: int = 1000
+    compile: bool = False
+    seed: int = 1234
+
+    @classmethod
+    def from_yaml(cls, path: Union[str, Path]) -> "TrainingConfig":
+        with open(path, "r", encoding="utf-8") as f:
+            d = yaml.safe_load(f)
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> Dict[str, Any]:
+        return dict(self.__dict__)
+
+
+@dataclass
 class ModelConfig:
     name: str = "MiraLM-47M-SparseMind"
     model_type: str = "sparsemind"     # "sparsemind" | "dense"
