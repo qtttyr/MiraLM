@@ -1,0 +1,5 @@
+MiraLM-47M-SparseMind	47,640,584	38,793,224	PASS	configs/model_sparsemind.yaml
+MiraLM-47M-Dense	46,902,784	46,902,784	PASS	configs/model_dense_fallback.yaml
+MiraLM-47M-SparseMind	47,640,584	38,793,224	PASS	configs/model_sparsemind.yaml
+MiraLM-47M-Dense	46,902,784	46,902,784	PASS	configs/model_dense_fallback.yaml
+MiraLM-47M-SparseMind	47,640,584	38,793,224	PASS	configs/model_sparsemind.yaml

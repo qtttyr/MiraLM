@@ -1,0 +1,36 @@
+# MiraLM — Dense fallback (guaranteed build)
+# Static budget projection ≈ 46.9M trainable params (verified by scripts/param_budget.py)
+# Switches: use_mamba: false, use_moe: false — one line each, no code changes.
+name: MiraLM-47M-Dense
+model_type: dense
+
+# Core
+vocab_size: 24000
+d_model: 512
+n_layers: 11
+n_heads: 8
+head_dim: 64
+n_kv_heads: 4
+d_ff: 1536
+max_seq_len: 1024
+norm_eps: 1.0e-5
+tie_weights: true
+dropout: 0.0
+initializer_std: 0.02
+
+# Hybrid blocks disabled — dense GQA + SwiGLU only
+use_mamba: false
+mamba:
+  d_state: 16
+  d_conv: 4
+  expand: 2
+
+use_moe: false
+moe:
+  n_experts: 8
+  n_experts_active: 2
+  expert_dim: 1280
+  router_bias: true
+  z_loss_coef: 0.001
+  aux_loss_coef: 0.01
+  guide_steps: 2000

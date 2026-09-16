@@ -1,0 +1,35 @@
+# MiraLM — SparseMind-Balanced (recommended build)
+# Static budget projection ≈ 47.6M trainable params (verified by scripts/param_budget.py)
+name: MiraLM-47M-SparseMind
+model_type: sparsemind
+
+# Core
+vocab_size: 24000
+d_model: 384
+n_layers: 14
+n_heads: 8
+head_dim: 48
+n_kv_heads: 4
+d_ff: 2048
+max_seq_len: 1024
+norm_eps: 1.0e-5
+tie_weights: true
+dropout: 0.0
+initializer_std: 0.02
+
+# Jamba-style alternation: 7 Mamba + 7 GQA+SwiGLU
+use_mamba: true
+mamba:
+  d_state: 16
+  d_conv: 4
+  expand: 2
+
+use_moe: true
+moe:
+  n_experts: 8
+  n_experts_active: 2
+  expert_dim: 1280
+  router_bias: true
+  z_loss_coef: 0.001
+  aux_loss_coef: 0.01
+  guide_steps: 2000

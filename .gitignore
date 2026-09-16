@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Checkpoints / artifacts (regenerated, never committed)
+checkpoints/
+out/
+results/final/
+wandb/
+lightning_logs/
+mlruns/
+*.safetensors
+*.ckpt
+*.pt
+*.bin
+
+# Data (large, streamed)
+data/
+data_raw/
+*.npy
+*.npz
+*.parquet
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Secrets / credentials
+.env
+*.env
+kaggle.json
+wandb.key
+
+# Internal working notes (not part of the public submission)
+Overview.md
