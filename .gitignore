@@ -21,8 +21,8 @@ mlruns/
 *.bin
 
 # Data (large, streamed)
-data/
-data_raw/
+/data/
+/data_raw/
 *.npy
 *.npz
 *.parquet
