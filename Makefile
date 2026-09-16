@@ -1,7 +1,7 @@
 PY ?= .venv/bin/python
 SAMPLE ?= configs/model_sparsemind.yaml
 
-.PHONY: setup params check test
+.PHONY: setup params check test prepare-data train finetune eval
 
 ## bootstrap: create venv and install requirements
 setup:
@@ -20,3 +20,30 @@ check:
 ## run the test suite
 test:
 	$(PY) -m pytest -q
+
+## pre-tokenize + pack a corpus into shards (see --help)
+prepare-data:
+	$(PY) scripts/prepare_data.py --help
+
+## launch pre-training (needs --model-config/--data-dir/--ckpt-dir)
+train:
+	$(PY) scripts/train.py --model-config $(SAMPLE) \
+		--train-config configs/train_sparsemind.yaml \
+		--data-dir data/packed --ckpt-dir checkpoints/mira
+
+## build the synthetic SFT corpus
+build-sft:
+	$(PY) scripts/build_sft.py --tokenizer checkpoints/mira/last/tokenizer.json \
+		--out-dir data/sft --seq-len 1024 --types json,sql,cot --num-examples 300
+
+## fine-tune a pre-trained checkpoint on structured output
+finetune:
+	$(PY) scripts/finetune.py --model-config $(SAMPLE) \
+		--train-config configs/train_sparsemind.yaml \
+		--data-dir data/sft --ckpt-dir checkpoints/mira-sft \
+		--resume checkpoints/mira/last --max-steps 2000
+
+## run the five mandatory GIBC V2 benchmarks (lm-evaluation-harness)
+eval:
+	$(PY) scripts/eval_harness.py --ckpt-dir checkpoints/mira-sft/last \
+		--output results/eval_mira.json --batch-size 4

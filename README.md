@@ -2,7 +2,7 @@
 
 > `≤50M` trainable parameters (incl. embeddings & output head) · trained **from scratch**
 > GIBC V2 Hackathon, Track 01 — foundational model track.
-> Status: **in progress** — model core (attention + Mamba + MoE) + dual param gate live.
+> Status: **core + data + training + SFT + eval live** (95 tests green).
 
 ---
 
@@ -18,12 +18,17 @@ standard commonsense and language-modeling benchmarks.
 
 - **Sub-50M budget, provably.** `scripts/param_budget.py` is a day-1 gate that
   prints a full parameter accounting and fails the build if the budget is
-  exceeded. (See `results/param_budget_*.txt`.)
+  exceeded. `scripts/check_params.py` re-checks the *real* model (numel ==
+  projection, weight-tied head). (See `results/param_budget_*.txt`.)
 - **Sparse routing with guided specialization.** Router biases are initialized
   as semantic domain priors and annealed over the first 2k steps — experts
   visibly specialize, and the demo visualizes their activations live.
-- **Reproducible end-to-end.** `make params → checkout → eval` with a single
-  config; benchmark results committed as JSON under `results/`.
+- **SFT for structured output.** A JSON/SQL/CoT curriculum fine-tunes the
+  pretrained backbone into a machine-parseable answer protocol
+  (`<|json|>`/`<|sql|>`/`<|cot|>` + `<|think|>`/`<|answer|>` delimiters).
+- **Reproducible end-to-end.** `make params → check → train → finetune →
+  eval` with a single config; benchmark results committed as JSON under
+  `results/`.
 
 ## Training
 
@@ -49,11 +54,12 @@ Official Track-01 metrics (via lm-evaluation-harness), same harness version
 and commands for the baseline models (GPT-2-117M, Pythia-70M) so comparisons
 are controlled:
 
+The harness runs the same versions/commands for the baseline models so all
+comparisons are controlled:
+
 ```bash
-lm_eval --model hf \
-  --model_args pretrained=./checkpoints/best,dtype=fp16 \
-  --tasks hellaswag,arc_easy,piqa,winogrande,wikitext \
-  --batch_size 32 --output_path results/final.json --seed 1234
+python scripts/eval_harness.py --ckpt-dir checkpoints/mira-sft/last \
+    --output results/eval_mira.json --batch-size 4
 ```
 
 | Model | HellaSwag (acc_norm) | ARC-E (acc_norm) | PIQA (acc_norm) | WinoGrande (acc) | Wiki-103 (PPL) |
@@ -67,13 +73,23 @@ lm_eval --model hf \
 ```bash
 make setup        # venv + deps
 make params       # budget gate (must PASS)
-# …training + eval scripts added as they land
+make check        # authoritative gate (real model numel == projection)
+make test         # 95-unit suite
+
+# preparation -> train -> SFT -> eval
+python scripts/prepare_data.py --input-dir data/raw --out-dir data/packed \
+      --tokenizer-data data/raw --seq-len 1024 --domain fineweb,fineweb_edu
+make train        # pre-training (needs --data-dir/--ckpt-dir)
+make build-sft    # synthetic JSON/SQL/CoT corpus -> data/sft
+make finetune     # SFT on structured output
+make eval         # mandatory benchmarks via lm-evaluation-harness
 ```
 
 ## Reporting & compliance
 
 - [x] Full parameter accounting: `scripts/param_budget.py` (static) + `scripts/check_params.py` (real model) → `results/`
-- [ ] Evaluation script + JSON results committed in `results/`
+- [x] Training loop, SFT pipeline, evaluation harness (`scripts/`)
+- [ ] Evaluation JSON results committed in `results/`
 - [ ] Hardware / training time / approximate compute (section above)
 - [ ] Datasets & licenses: FineWeb / FineWeb-Edu (ODC-By), GSM8K (MIT), Spider (MIT)
 - [ ] AI-assisted tooling disclosure *(section below)*
