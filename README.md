@@ -2,7 +2,7 @@
 
 > `≤50M` trainable parameters (incl. embeddings & output head) · trained **from scratch**
 > GIBC V2 Hackathon, Track 01 — foundational model track.
-> Status: **work in progress** — scaffold + parameter-budget gate live.
+> Status: **in progress** — model core (attention + Mamba + MoE) + dual param gate live.
 
 ---
 
@@ -72,7 +72,7 @@ make params       # budget gate (must PASS)
 
 ## Reporting & compliance
 
-- [ ] Full parameter accounting: `scripts/param_budget.py` → `results/`
+- [x] Full parameter accounting: `scripts/param_budget.py` (static) + `scripts/check_params.py` (real model) → `results/`
 - [ ] Evaluation script + JSON results committed in `results/`
 - [ ] Hardware / training time / approximate compute (section above)
 - [ ] Datasets & licenses: FineWeb / FineWeb-Edu (ODC-By), GSM8K (MIT), Spider (MIT)

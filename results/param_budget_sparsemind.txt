@@ -1,20 +1,21 @@
-┌────────────────────────────────────────────────────────────────────────────────────────────┐
-│                MiraLM — static parameter-budget gate (pre-build projection)                │
-│ config  : configs/model_sparsemind.yaml                                                    │
-│ model   : MiraLM-47M-SparseMind                                                             · sparsemind · 14 layers· tied emb│
-├────────────────────────────────────────────────────────────────────────────────────────────┤
-│ component                         count   unit params    total params   formula           │
-│ -------------------------------- ------ ------------- ---------------   ----------------------│
-│ Embedding (tied, output head shared)      1     9,216,000       9,216,000   vocab_size × d_model│
-│ Mamba block (SSM, incl. pre-norm)      7     1,001,088       7,007,616   in_proj + depthwise-conv + x_proj + dt_proj + A_log + D + out_proj + norm│
-│ Attention block (GQA + RoPE + SwiGLU)      7     2,802,432      19,617,024   q/o + k/v projections + SwiGLU(3·d·d_ff) + 2 norms│
-│ MoE experts (SWiGLU)                  8     1,474,560      11,796,480   3 · d_model · expert_dim per expert│
-│ MoE router + semantic biases          1         3,080           3,080   d_model · n_experts + n_experts biases│
-│ Final norm (RMSNorm)                  1           384             384   1 × d_model       │
-├────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Trainable parameters                                       47,640,584   (0-shot gate) ─── │
-│ Budget                                                     50,000,000   hard limit        │
-│ Status                                                ✓ PASS  (headroom 2,359,416)        │
-│ Active params (sparse routing)                             38,793,224   (81.4% of total)  │
-│ Store size                                             fp16 ≈ 95.3 MB   int8 ≈ 47.6 MB    │
-└────────────────────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                  MiraLM — static parameter-budget gate (pre-build projection)                  │
+│ config : configs/model_sparsemind.yaml                                                       │
+│ model  : MiraLM-47M-SparseMind · sparsemind · 14 layers · tied embedding                     │
+├────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ component                           count   unit params    total params   formula            │
+│ ---------------------------------- ------ ------------- ---------------   ---------------------- │
+│ Embedding (tied, output head shared)      1     9,216,000       9,216,000   vocab_size × d_model │
+│ Mamba block (SSM, incl. pre-norm)       7     1,001,088       7,007,616   in_proj + depthwise-conv + x_proj + dt_proj + A_log + D + out_proj + norm │
+│ Attention block (GQA + RoPE + SwiGLU)      7     2,802,432      19,617,024   q/o projections + k/v projections + SwiGLU(3·d·d_ff) + 2 norms │
+│ MoE experts (SwiGLU)                    8     1,474,560      11,796,480   3 · d_model · expert_dim per expert │
+│ MoE router + semantic biases            1         3,080           3,080   d_model · n_experts + n_experts biases │
+│ MoE gate norm (RMSNorm)                 1           384             384   1 × d_model        │
+│ Final norm (RMSNorm)                    1           384             384   1 × d_model        │
+├────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Trainable parameters                                         47,640,968                      │
+│ Budget limit                                                 50,000,000                      │
+│ Status                                                  ✓ PASS  (headroom 2,359,032)         │
+│ Active params (sparse routing)                               38,793,608   (81.4% of total)   │
+│ Store size                                               fp16 ≈ 95.3 MB   int8 ≈ 47.6 MB     │
+└────────────────────────────────────────────────────────────────────────────────────────────────┘

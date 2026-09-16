@@ -1,17 +1,17 @@
-┌────────────────────────────────────────────────────────────────────────────────────────────┐
-│                MiraLM — static parameter-budget gate (pre-build projection)                │
-│ config  : configs/model_dense_fallback.yaml                                                │
-│ model   : MiraLM-47M-Dense                                                                  · dense · 11 layers· tied emb│
-├────────────────────────────────────────────────────────────────────────────────────────────┤
-│ component                         count   unit params    total params   formula           │
-│ -------------------------------- ------ ------------- ---------------   ----------------------│
-│ Embedding (tied, output head shared)      1    12,288,000      12,288,000   vocab_size × d_model│
-│ Attention block (GQA + RoPE + SwiGLU)     11     3,146,752      34,614,272   q/o + k/v projections + SwiGLU(3·d·d_ff) + 2 norms│
-│ Final norm (RMSNorm)                  1           512             512   1 × d_model       │
-├────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Trainable parameters                                       46,902,784   (0-shot gate) ─── │
-│ Budget                                                     50,000,000   hard limit        │
-│ Status                                                ✓ PASS  (headroom 3,097,216)        │
-│ Active params (sparse routing)                             46,902,784   (100.0% of total) │
-│ Store size                                             fp16 ≈ 93.8 MB   int8 ≈ 46.9 MB    │
-└────────────────────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                  MiraLM — static parameter-budget gate (pre-build projection)                  │
+│ config : configs/model_dense_fallback.yaml                                                   │
+│ model  : MiraLM-47M-Dense · dense · 11 layers · tied embedding                               │
+├────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ component                           count   unit params    total params   formula            │
+│ ---------------------------------- ------ ------------- ---------------   ---------------------- │
+│ Embedding (tied, output head shared)      1    12,288,000      12,288,000   vocab_size × d_model │
+│ Attention block (GQA + RoPE + SwiGLU)     11     3,146,752      34,614,272   q/o projections + k/v projections + SwiGLU(3·d·d_ff) + 2 norms │
+│ Final norm (RMSNorm)                    1           512             512   1 × d_model        │
+├────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Trainable parameters                                         46,902,784                      │
+│ Budget limit                                                 50,000,000                      │
+│ Status                                                  ✓ PASS  (headroom 3,097,216)         │
+│ Active params (sparse routing)                               46,902,784   (100.0% of total)  │
+│ Store size                                               fp16 ≈ 93.8 MB   int8 ≈ 46.9 MB     │
+└────────────────────────────────────────────────────────────────────────────────────────────────┘
