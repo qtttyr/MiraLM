@@ -119,7 +119,15 @@ class MambaBlock(nn.Module):
         xf = xr.float()
         dA = torch.exp(dtf[:, :, :, None] * A)       # (B, T, di, st)
         dBx = dtf[:, :, :, None] * xf[:, :, :, None] * Bs.float()
-        y = pscan(dA, dBx) * Cs.float()              # (B, T, di, st)
+        # Hillis-Steele pscan builds O(log T) fp32 intermediates that autograd
+        # retains for backward (bytes scale as B*T*di*st per round, per block).
+        # Recompute through a checkpoint so those tensors are freed after the
+        # forward and rebuilt one block at a time during the backward — this
+        # is what keeps a 47M model inside a 16 GB T4.
+        y = (
+            torch.utils.checkpoint.checkpoint(pscan, dA, dBx, use_reentrant=False)
+            * Cs.float()
+        )  # (B, T, di, st)
         y = y.sum(-1)                                # (B, T, di)
         y = y + self.D * xf                          # diagonal skip
         y = y.to(x.dtype)                            # (B, T, di)
