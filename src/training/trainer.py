@@ -247,6 +247,33 @@ class Trainer:
                     "unk_token": " unk",
                     "model_max_length": 1024,
                 }, indent=2), encoding="utf-8")
+            meta = {"step": self.step_num, "loss": float(loss), "perplexity": math.exp(loss)}
+            (path / "train_meta.json").write_text(_json.dumps(meta, indent=2), encoding="utf-8")
+        self._mirror_persist(path, loss)
+        print(f"  saved checkpoint: {path} (step={self.step_num}, loss={loss:.4f})")
+
+    def _mirror_persist(self, path: Path, loss: float) -> None:
+        """Best-effort copy of a freshly saved checkpoint into a persistent dir.
+
+        Kaggle keeps `/kaggle/output` alive after the 12h session dies, and
+        `/kaggle/working` is wiped. Point MIRALM_PERSIST_DIR at
+        `/kaggle/output/persist-<name>` (or any folder of your choosing) and the
+        latest weights land there at every save — no manual snapshot cell needed.
+        Nothing fails if the target is unwritable; this is pure insurance.
+        """
+        import shutil as _shutil
+
+        persist = os.environ.get("MIRALM_PERSIST_DIR")
+        if not persist:
+            return
+        target = Path(persist)
+        try:
+            target.mkdir(parents=True, exist_ok=True)
+            for entry in path.iterdir():
+                _shutil.copy2(entry, target / entry.name)
+            print(f"  mirrored checkpoint -> {target} (persistent)")
+        except Exception as e:  # never break training over a mirror failure
+            print(f"  [warn] mirror to {target} failed ({e}) — continuing", file=sys.stderr)
         meta = {"step": self.step_num, "loss": loss}
         import json as _json2
         (path / "train_meta.json").write_text(_json2.dumps(meta), encoding="utf-8")
