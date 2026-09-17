@@ -57,6 +57,7 @@ class Trainer:
         self.optimizer = self._make_optimizer()
         self.step_num = 0
         self.best_loss: float = math.inf
+        self._last_loss: float = math.inf
         self._csv_file: Optional[Any] = None
         self._csv_writer = None
 
@@ -124,17 +125,19 @@ class Trainer:
 
             self.optimizer.param_groups[0]["lr"] = lr
             self.optimizer.param_groups[1]["lr"] = lr
+            self._last_loss = float(loss.detach())
 
             if self.tc.log_interval > 0 and (self.step_num + 1) % self.tc.log_interval == 0:
                 self._log(self.step_num + 1, lr, float(loss.detach()), accum_metrics)
             if self.tc.save_interval > 0 and (self.step_num + 1) % self.tc.save_interval == 0:
                 avg = float(loss.detach())
+                self._last_loss = avg
                 self.save_checkpoint(self.ckpt_dir / "last", avg)
                 if avg < self.best_loss:
                     self.best_loss = avg
                     self.save_checkpoint(self.ckpt_dir / "best", avg)
 
-        self.save_checkpoint(self.ckpt_dir / "last", self.best_loss)
+        self.save_checkpoint(self.ckpt_dir / "last", self._last_loss)
         if self._csv_file:
             self._csv_file.close()
         print("training complete")
