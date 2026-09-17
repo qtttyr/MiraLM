@@ -17,10 +17,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import io
 import json
 import random
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -61,11 +63,36 @@ def _mc(cur: list[str]) -> str:
     return vals if isinstance(vals, str) else "\n".join(map(str, vals or []))
 
 
+def _norm(v: object) -> str:
+    """Reduce a parquet cell to a plain string.
+
+    String columns from recent parquet producers may be Run-End-Encoded;
+    pyarrow's to_pylist() then yields dicts like {"text": "..."} or
+    {"value": "..."} instead of plain str.
+    """
+    if isinstance(v, str):
+        return v
+    if isinstance(v, dict):
+        for k in ("value", "text", "content"):
+            c = v.get(k)
+            if isinstance(c, str):
+                return c
+        for c in v.values():
+            if isinstance(c, str):
+                return c
+        return ""
+    if isinstance(v, (list, tuple)):
+        return "\n".join(s for s in (_norm(x) for x in v) if s)
+    return ""
+
+
 def _http_parquet_texts(url: str, n: int, rng: random.Random) -> list[str] | None:
     """Fetch the first row-groups of one parquet shard over HTTPS.
 
     Single-threaded (requests + pyarrow) — avoids the `datasets` streaming
     downloader that can crash with 'PyGILState_Release' aborts on some hosts.
+    The shard is cached on disk under the temp dir so re-runs skip the
+    (large) download.
     """
     try:
         import pyarrow.parquet as pq
@@ -73,16 +100,25 @@ def _http_parquet_texts(url: str, n: int, rng: random.Random) -> list[str] | Non
     except Exception:
         return None
     try:
-        r = requests.get(url, timeout=(30, 300))
-        r.raise_for_status()
-        pf = pq.ParquetFile(io.BytesIO(r.content))
+        key = hashlib.md5(url.encode()).hexdigest()
+        cache_path = Path(tempfile.gettempdir()) / "miral_fetch" / f"{key}.parquet"
+        if not cache_path.exists():
+            r = requests.get(url, stream=True, timeout=(30, 600))
+            r.raise_for_status()
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(cache_path, "wb") as f:
+                for chunk in r.iter_content(1 << 20):
+                    f.write(chunk)
+        pf = pq.ParquetFile(str(cache_path))
         col = next((c for c in ("text", "content") if c in pf.schema.names), None)
         if col is None:
             return None
         rows: list[str] = []
         for rg in range(pf.num_row_groups):
-            items = pf.read_row_group(rg, columns=[col]).to_pylist()
-            rows += [t for t in items if isinstance(t, str) and t.strip()]
+            for v in pf.read_row_group(rg, columns=[col]).to_pylist():
+                text = _norm(v)
+                if text.strip():
+                    rows.append(text)
             if len(rows) >= n:
                 break
         if rows:
@@ -146,11 +182,14 @@ def fetch(name: str, n: int, seed: int) -> list[str] | None:
         return rows
 
     if name == "code":
-        rows, ds = [], load_dataset("codeparrot/tinycodes", split="train")
-        for ex in ds:
-            rows.append(ex.get("content") or ex.get("text") or "")
-            if len(rows) >= n:
-                break
+        try:
+            rows, ds = [], load_dataset("codeparrot/tinycodes", split="train")
+            for ex in ds:
+                rows.append(ex.get("content") or ex.get("text") or "")
+                if len(rows) >= n:
+                    break
+        except Exception:  # noqa: BLE001
+            rows = []
         if not rows:
             # tinycodes was removed from the Hub in 2025 — fall back to the
             # raw codeparrot-clean release (line-delimited gzipped JSON).
