@@ -51,6 +51,7 @@ class Trainer:
         torch.manual_seed(train_cfg.seed)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = MiraLM(cfg).to(self.device)
+        self._wandb = self._try_init_wandb()
         self.scaler: Optional[torch.amp.GradScaler] = (
             torch.amp.GradScaler(enabled=(train_cfg.precision == "fp16" and self.device.type == "cuda"))
         )
@@ -138,15 +139,50 @@ class Trainer:
                     self.save_checkpoint(self.ckpt_dir / "best", avg)
 
         self.save_checkpoint(self.ckpt_dir / "last", self._last_loss)
+        if self._wandb is not None:
+            self._wandb.log({"train/final_perplexity": math.exp(self._last_loss)})
         if self._csv_file:
             self._csv_file.close()
         print("training complete")
+
+    def _try_init_wandb(self) -> Any:
+        """Optional W&B logging (via WANDB_API_KEY or `wandb login`).
+
+        Enabled only when credentials exist and not WANDB_DISABLED=1;
+        never fails the run if wandb is unavailable.
+        """
+        try:
+            import wandb
+        except Exception as exc:  # noqa: BLE001 — logging is optional
+            print(f"[wandb] not installed ({exc}) — skipping logging")
+            return None
+        if os.environ.get("WANDB_DISABLED") == "1":
+            return None
+        key = os.environ.get("WANDB_API_KEY")
+        logged_in = os.path.exists(os.path.join(os.path.expanduser("~"), ".netrc"))
+        if not (key or logged_in):
+            print("[wandb] no credentials — skip logging (set WANDB_API_KEY or run `wandb login`)")
+            return None
+        try:
+            run = wandb.init(
+                project=os.environ.get("WANDB_PROJECT", "MiraLM"),
+                config={"model": self.cfg.dict(), "train": self.tc.dict()} if hasattr(self.cfg, "dict") else {},
+                reinit=True,
+            )
+            return wandb if run is not None else None
+        except Exception as exc:  # noqa: BLE001 — never block training
+            print(f"[wandb] init failed ({exc}) — continuing without logging")
+            return None
 
     def _log(self, step, lr, loss, metrics):
         vals = {"step": step, "lr": lr, "loss": loss, **metrics, "load": self._expert_load_str()}
         line = "  ".join(f"{k}={v:.6f}" if isinstance(v, float) else f"{k}={v}" for k, v in vals.items())
         print(f"[{step:>6d}] {line}")
         self._write_csv(vals)
+        if self._wandb is not None:
+            self._wandb.log(
+                {"step": step, "train/loss": loss, "train/perplexity": math.exp(loss), "train/lr": lr}
+            )
 
     def _write_csv(self, vals):
         if self._csv_file is None:
