@@ -107,7 +107,7 @@ class ShardWriter:
             "total_chunks": self.total_chunks,
             "total_tokens": self.total_chunks * self.seq_len,
             "domain_names": list(DOMAIN_NAMES),
-            "shards": [str(s) for s in self.shards],
+            "shards": [str(s.relative_to(self.out_dir)) for s in self.shards],
         }
         (self.out_dir / "manifest.json").write_text(
             json.dumps(manifest, indent=2), encoding="utf-8"
@@ -124,8 +124,24 @@ class ShardReader:
         self.vocab_size: int = manifest["vocab_size"]
         self.total_chunks: int = manifest["total_chunks"]
         self.domain_names: List[str] = manifest["domain_names"]
-        self._shards = [self._map(Path(root) / p) for root, p in
-                        [(out_dir, s) for s in manifest["shards"]]]
+        self._shards = [self._map(self._resolve(Path(out_dir), s)) for s in manifest["shards"]]
+
+    @staticmethod
+    def _resolve(out_dir: Path, entry: str) -> Path:
+        """Resolve a manifest shard entry.
+
+        New manifests store entries relative to the out-dir (`shard_00000`);
+        older ones stored repo-root-relative paths (`data/packed/shard_00000`).
+        Accept both, plus absolute paths.
+        """
+        cand = Path(entry)
+        if (out_dir / cand).exists():
+            return out_dir / cand
+        if cand.exists():
+            return cand
+        if cand.is_absolute():
+            return cand
+        raise FileNotFoundError(f"shard from manifest not found: {entry} (looked under {out_dir})")
 
     @staticmethod
     def _map(shard_dir: Path):
