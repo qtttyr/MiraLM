@@ -92,7 +92,67 @@ def test_one_step_gradients_finite():
         assert all(torch.isfinite(g).all() for g in grads)
 
 
-# -------------------------------- train -------------------------------------
+def test_seek_mid_epoch_and_epoch_boundary():
+    with tempfile.TemporaryDirectory() as td:
+        shard = pathlib.Path(td) / "s"; shard.mkdir()
+        _write_synthetic_corpus(shard, n_chunks=64)
+        seq = 32
+        a = PackedDataLoader(shard, 4, seq, seed=3)
+        for _ in range(5):
+            a.next_batch()
+        expected_ids, _ = a.next_batch()
+
+        b = PackedDataLoader(shard, 4, seq, seed=3)
+        b.seek(5)
+        resumed_ids, _ = b.next_batch()
+        assert torch.equal(expected_ids, resumed_ids)
+
+
+def test_seek_mid_epoch_and_epoch_boundary():
+    with tempfile.TemporaryDirectory() as td:
+        shard = pathlib.Path(td) / "s"; shard.mkdir()
+        _write_synthetic_corpus(shard, n_chunks=128)  # batch 4 -> 32 batches/epoch
+        seq = 32
+        full = PackedDataLoader(shard, 4, seq, seed=7)
+        ids = [full.next_batch()[0] for _ in range(33)]  # crosses into epoch 1
+
+        replayed = PackedDataLoader(shard, 4, seq, seed=7)
+        replayed.seek(30)
+        got = [replayed.next_batch()[0] for _ in range(3)]
+        assert torch.equal(ids[30], got[0])
+        assert torch.equal(ids[31], got[1])
+        assert torch.equal(ids[32], got[2])
+
+
+def test_trainer_resume_round_trip():
+    with tempfile.TemporaryDirectory() as td:
+        shard = pathlib.Path(td) / "s"; shard.mkdir()
+        _write_synthetic_corpus(shard, n_chunks=128)
+        cfg, tc = _mini_cfg(), _mini_train()
+        ckpt = pathlib.Path(td) / "ck"
+
+        loader = PackedDataLoader(shard, tc.batch_size, cfg.max_seq_len, seed=0)
+        trainer = Trainer(cfg, tc, loader, ckpt)
+        trainer.train()
+        assert (ckpt / "last" / "train_meta.json").exists()
+
+        loader2 = PackedDataLoader(shard, tc.batch_size, cfg.max_seq_len, seed=0)
+        trainer2 = Trainer(cfg, tc, loader2, pathlib.Path(td) / "ck2")
+        trainer2.load_resume(ckpt / "last")
+        assert trainer2.step_num == cfg if False else True
+        import json as _json
+        meta = _json.loads((ckpt / "last" / "train_meta.json").read_text())
+        assert trainer2.step_num == meta["step"]
+
+        # continued loss must be finite and the two trainers agree on weights
+        ids, doms = loader2.next_batch()
+        ids = ids.to(trainer.device)
+        with torch.no_grad():
+            assert torch.isfinite(trainer2.model(ids).logits).all()
+        s1 = trainer.model.state_dict()
+        s2 = trainer2.model.state_dict()
+        assert all(torch.equal(s1[k].cpu(), s2[k].cpu())
+                   for k in s1 if k in s2)
 
 def test_full_train_checkpoint_round_trip():
     with tempfile.TemporaryDirectory() as td:

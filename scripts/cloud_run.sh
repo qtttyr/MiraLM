@@ -47,12 +47,18 @@ else
 fi
 
 # 2. pre-train ---------------------------------------------------------------
+RESUME_ARGS=""
+if [ -d "$CKPT_DIR/last" ]; then
+    RESUME_ARGS="--resume $CKPT_DIR/last"
+    mira_log "pre-train checkpoint found — resuming from $CKPT_DIR/last"
+fi
 mira_log "pre-train (${MAX_STEPS} steps)"
 "$PY" scripts/train.py \
     --model-config "$MODEL_CONFIG" \
     --train-config "$TRAIN_CONFIG" \
     --data-dir "$DATA_PACKED" \
-    --ckpt-dir "$CKPT_DIR"
+    --ckpt-dir "$CKPT_DIR" \
+    $RESUME_ARGS
 
 # 3. SFT (structured output) -------------------------------------------------
 if [ -d "${DATA_PACKED}/sft" ]; then
@@ -89,3 +95,8 @@ mira_log "submission screenshots (heatmap + curves + demo outputs)"
     --out-dir results/screenshots
 
 mira_log "ALL DONE — artifacts in results/, checkpoints in ${CKPT_DIR}*"
+
+if [ -n "${KAGGLE_OUT:-}" ] && [ -d "$KAGGLE_OUT" ]; then
+    mira_log "copying artifacts to persistent $KAGGLE_OUT"
+    cp -r "$CKPT_DIR" "$DATA_PACKED" results "$KAGGLE_OUT/" 2>/dev/null || true
+fi

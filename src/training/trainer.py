@@ -81,10 +81,12 @@ class Trainer:
     def train(self):
         micro_steps = max(1, self.tc.batch_size // self.tc.micro_batch)
         total = self.tc.max_steps
+        start = self.step_num
         print(f"training {total} steps, effective batch {self.tc.batch_size} * {self.loader.seq_len} tokens")
         print(f"  precision={self.tc.precision}  device={self.device}  ckpt_dir={self.ckpt_dir}")
+        print(f"  resume at step {start}/{total}")
 
-        for self.step_num in range(total):
+        for self.step_num in range(start, total):
             lr = cosine_warmup_lr(self.step_num, total, self.tc.max_lr, self.tc.min_lr, self.tc.warmup_frac)
             gw = guide_weight(self.step_num, self.tc.guide_steps, self.tc.guide_ramp)
             self.optimizer.zero_grad()
@@ -201,6 +203,29 @@ class Trainer:
                 loads = out.metrics["expert_load"].cpu().tolist()
                 return " ".join(f"{v:.2f}" for v in loads)
         return ""
+
+    def load_resume(self, path: Path) -> None:
+        """Load a saved checkpoint and continue training from its step.
+
+        Weights come from the HF-format checkpoint; optimizer/AMP states are
+        rebuilt fresh (acceptable for this scale). Data iteration re-seeks so
+        the resumed run sees exactly the sequence the interrupted one would.
+        """
+        import json as _json
+
+        path = Path(path)
+        if not (path / "train_meta.json").exists():
+            raise FileNotFoundError(f"not a trainer checkpoint: {path}")
+        wrapper = MiraLMForCausalLM.from_pretrained(str(path))
+        self.model.load_state_dict(wrapper.model.state_dict(), strict=True)
+        meta = _json.loads((path / "train_meta.json").read_text(encoding="utf-8"))
+        step = int(meta.get("step", 0))
+        loss = float(meta.get("loss", math.inf))
+        self.step_num = step
+        self._last_loss = loss
+        self.best_loss = loss
+        self.loader.seek(step)
+        print(f"resumed from {path} at step={step} loss={loss:.4f}")
 
     def save_checkpoint(self, path: Path, loss: float):
         path.mkdir(parents=True, exist_ok=True)

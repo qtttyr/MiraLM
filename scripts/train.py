@@ -34,6 +34,8 @@ def main() -> int:
     ap.add_argument("--data-dir", required=True, type=Path,
                     help="packed shard directory (manifest.json)")
     ap.add_argument("--ckpt-dir", required=True, type=Path)
+    ap.add_argument("--resume", type=Path, default=None,
+                    help="continue from a checkpoint dir (e.g. checkpoints/mira/last)")
     args = ap.parse_args()
 
     if not (args.data_dir / "manifest.json").exists():
@@ -53,6 +55,8 @@ def main() -> int:
     print(f"data loaded: {loader._total_chunks} chunks, {loader.batches_per_epoch()} batches/epoch")
 
     trainer = Trainer(cfg, tc, loader, args.ckpt_dir)
+    if args.resume is not None:
+        trainer.load_resume(args.resume)
     trainer.train()
     return 0
 

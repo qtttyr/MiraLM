@@ -55,7 +55,7 @@ class PackedDataLoader:
     def next_batch(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """Return the next (batch_size, seq_len) ids + (batch_size,) domain tensors."""
         if not self._orders or self._pos >= self._batches_per_epoch:
-            self._reshuffle()
+            self._reshuffle(keep_pos=not self._orders and self._pos > 0)
         order = self._orders[self._epoch % len(self._orders)]
         start = self._pos * self.batch_size
         ids, doms = [], []
@@ -68,14 +68,27 @@ class PackedDataLoader:
         doms_t = torch.tensor(doms, dtype=torch.long)         # (B,)
         return ids_t.to(torch.long), doms_t
 
+    def seek(self, step: int) -> None:
+        """Position the iterator as if `step` batches had been consumed.
+
+        Used to resume training mid-run from a saved checkpoint. The data
+        permutation is deterministic (built from self.seed), so a resumed load
+        continues exactly the permutation the uninterrupted run used.
+        """
+        bpe = max(1, self._batches_per_epoch)
+        self._epoch = 0
+        self._pos = step % bpe
+        self._orders = []
+
     def reset_epoch(self) -> None:
         self._reshuffle()
 
     # --------------------------------------------------------------- private
-    def _reshuffle(self) -> None:
+    def _reshuffle(self, keep_pos: bool = False) -> None:
         rng = np.random.RandomState(self.seed + self._epoch)
         order = np.arange(self._total_chunks, dtype=np.int64)
         rng.shuffle(order)
         self._orders.append(order)
-        self._pos = 0
+        if not keep_pos:
+            self._pos = 0
         self._epoch += 1
