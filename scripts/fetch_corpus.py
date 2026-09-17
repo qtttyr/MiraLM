@@ -17,6 +17,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import random
 import sys
@@ -60,6 +61,77 @@ def _mc(cur: list[str]) -> str:
     return vals if isinstance(vals, str) else "\n".join(map(str, vals or []))
 
 
+def _http_parquet_texts(url: str, n: int, rng: random.Random) -> list[str] | None:
+    """Fetch the first row-groups of one parquet shard over HTTPS.
+
+    Single-threaded (requests + pyarrow) — avoids the `datasets` streaming
+    downloader that can crash with 'PyGILState_Release' aborts on some hosts.
+    """
+    try:
+        import pyarrow.parquet as pq
+        import requests
+    except Exception:
+        return None
+    try:
+        r = requests.get(url, timeout=(30, 300))
+        r.raise_for_status()
+        pf = pq.ParquetFile(io.BytesIO(r.content))
+        col = next((c for c in ("text", "content") if c in pf.schema.names), None)
+        if col is None:
+            return None
+        rows: list[str] = []
+        for rg in range(pf.num_row_groups):
+            items = pf.read_row_group(rg, columns=[col]).to_pylist()
+            rows += [t for t in items if isinstance(t, str) and t.strip()]
+            if len(rows) >= n:
+                break
+        if rows:
+            rng.shuffle(rows)
+        return rows[:n]
+    except Exception:
+        return None
+
+
+def _http_gzip_jsonl_texts(base: str, file_idxs: range, n: int, rng: random.Random) -> list[str] | None:
+    """Fetch line-delimited JSON.gz shards (e.g. codeparrot-clean `content`)."""
+    try:
+        import gzip
+
+        import requests
+    except Exception:
+        return None
+    rows: list[str] = []
+    for i in file_idxs:
+        try:
+            r = requests.get(f"{base}file-{i:012d}.json.gz", timeout=(30, 300))
+            if r.status_code != 200:
+                continue
+            lines = gzip.decompress(r.content).decode("utf-8", "replace").splitlines()
+            doc: object
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                doc = json.loads(line)
+                if isinstance(doc, dict):
+                    text = doc.get("content") or doc.get("text")
+                elif isinstance(doc, str):
+                    text = doc
+                else:
+                    text = None
+                if isinstance(text, str) and text.strip():
+                    rows.append(text)
+                    if len(rows) >= n:
+                        break
+        except Exception:
+            continue
+        if len(rows) >= n:
+            break
+    if rows:
+        rng.shuffle(rows)
+    return rows[:n]
+
+
 def fetch(name: str, n: int, seed: int) -> list[str] | None:
     from datasets import load_dataset
 
@@ -76,9 +148,18 @@ def fetch(name: str, n: int, seed: int) -> list[str] | None:
     if name == "code":
         rows, ds = [], load_dataset("codeparrot/tinycodes", split="train")
         for ex in ds:
-            rows.append(ex.get("content") or "")
+            rows.append(ex.get("content") or ex.get("text") or "")
             if len(rows) >= n:
                 break
+        if not rows:
+            # tinycodes was removed from the Hub in 2025 — fall back to the
+            # raw codeparrot-clean release (line-delimited gzipped JSON).
+            rows = _http_gzip_jsonl_texts(
+                "https://huggingface.co/datasets/codeparrot/codeparrot-clean/resolve/main/",
+                range(1, 9),
+                n,
+                rng,
+            )
         return rows
 
     if name == "logicqa":
@@ -137,23 +218,19 @@ def fetch(name: str, n: int, seed: int) -> list[str] | None:
         return rows
 
     if name == "fineweb":
-        ds = load_dataset("HuggingFaceFW/fineweb", "sample-10BT", split="train", streaming=True)
-        rows = []
-        for ex in ds:
-            rows.append(ex.get("text") or "")
-            if len(rows) >= n:
-                break
-        rng.shuffle(rows)
+        rows = _http_parquet_texts(
+            "https://huggingface.co/datasets/HuggingFaceFW/fineweb/resolve/main/sample/10BT/000_00000.parquet",
+            n,
+            rng,
+        )
         return rows
 
     if name == "fineweb_edu":
-        ds = load_dataset("HuggingFaceFW/fineweb-edu", "sample-10BT", split="train", streaming=True)
-        rows = []
-        for ex in ds:
-            rows.append(ex.get("text") or "")
-            if len(rows) >= n:
-                break
-        rng.shuffle(rows)
+        rows = _http_parquet_texts(
+            "https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu/resolve/main/sample/10BT/000_00000.parquet",
+            n,
+            rng,
+        )
         return rows
 
     return None
@@ -188,15 +265,24 @@ def main() -> int:
         nargs="+",
         help="per-source overrides, e.g. --max-docs math 20000 fineweb 1000 (repeatable keys)",
     )
+    ap.add_argument(
+        "--only",
+        nargs="+",
+        default=[],
+        help="fetch only these sources (useful to fill gaps after a partial run)",
+    )
     args = ap.parse_args()
 
     overrides: dict[str, int] = {}
     m = args.max_docs or []
     for k in range(0, len(m), 2):
         overrides[m[k]] = int(m[k + 1])
+    only = set(args.only)
 
     total = 0
     for name, default in DEFAULT_DOCS.items():
+        if only and name not in only:
+            continue
         n = overrides.get(name, default)
         try:
             if name == "json":
