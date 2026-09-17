@@ -122,8 +122,9 @@ def test_full_train_checkpoint_round_trip():
         assert (ckpt / "last").exists()
         loaded = MiraLMForCausalLM.from_pretrained(ckpt / "last")
         loaded.eval()
+        loaded = loaded.to(trainer.device)  # match trainer so the compare works on GPU too
         with torch.no_grad():
-            reloaded_logits = loaded(fixed_ids.cpu()).logits
+            reloaded_logits = loaded(fixed_ids).logits
         assert torch.allclose(
-            trainer.model(fixed_ids.cpu()).logits, reloaded_logits, atol=1e-5
+            trainer.model(fixed_ids).logits, reloaded_logits, atol=1e-5
         )
