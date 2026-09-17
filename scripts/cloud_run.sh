@@ -28,6 +28,16 @@ SFT_STEPS="${SFT_STEPS:-2000}"
 MODEL_CONFIG="${MODEL_CONFIG:-configs/model_sparsemind.yaml}"
 TRAIN_CONFIG="${TRAIN_CONFIG:-configs/train_sparsemind.yaml}"
 
+# Persistent mirror for every fresh checkpoint. Kaggle wipes /kaggle/working /
+# /kaggle/working but keeps /kaggle/output; the trainer copies each save there,
+# so the last N steps survive the 12h session kill — no manual snapshot needed.
+# This is pure insurance: if the target is unwritable, training just continues.
+if [ -z "${MIRALM_PERSIST_DIR:-}" ] && [ -d "/kaggle/output" ]; then
+    MIRALM_PERSIST_DIR="/kaggle/output/persist-${CKPT_DIR##*/}"
+    export MIRALM_PERSIST_DIR
+    mira_log "mirroring every checkpoint save to ${MIRALM_PERSIST_DIR} (survives session)"
+fi
+
 mira_log() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 
 # 0. gates --------------------------------------------------------------------
