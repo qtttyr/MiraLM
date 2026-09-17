@@ -31,11 +31,23 @@ if str(ROOT) not in sys.path:
 from src.data import train_bpe_from_files, pack_documents, ShardWriter  # noqa: E402
 from src.data.domains import get_domain_id  # noqa: E402
 
+_SOURCE_KEYS = sorted(
+    {
+        "fineweb", "fineweb_edu", "gsm8k", "the_pile_math", "code",
+        "cwsmse_commonsense", "arc_easy", "piqa", "hellaswag",
+        "winogrande", "spider", "sql", "json", "logicqa", "cot",
+    },
+    key=len,
+    reverse=True,
+)
+
 
 def iter_text_files(corpus_dir: Path):
     """Yield (source_name, text) for every .txt / .jsonl file under corpus_dir."""
     for path in sorted(corpus_dir.rglob("*.txt")) + sorted(corpus_dir.rglob("*.jsonl")):
-        source = path.stem.split("_")[0]  # e.g. gsm8k_000.txt -> gsm8k
+        stem = path.stem
+        # longest known source prefix wins — fineweb_edu -> fineweb_edu, not fineweb
+        source = next((k for k in _SOURCE_KEYS if stem == k or stem.startswith(f"{k}_")), stem.split("_")[0])
         if path.suffix == ".jsonl":
             import json
 

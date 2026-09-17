@@ -34,15 +34,17 @@ mira_log "parameter-budget gates"
 "$PY" scripts/check_params.py
 
 # 1. tokenizer + shards ------------------------------------------------------
-mira_log "tokenize + pack corpus"
-mkdir -p "$DATA_PACKED"
-"$PY" scripts/prepare_data.py \
-    --input-dir "$DATA_RAW_DIR" \
-    --out-dir "$DATA_PACKED" \
-    --tokenizer-out "$DATA_PACKED/tokenizer.json" \
-    --seq-len 1024 \
-    --vocab-size 24000 \
-    --domain fineweb,fineweb_edu
+if [ -f "$DATA_PACKED/manifest.json" ]; then
+    mira_log "shards already present at $DATA_PACKED — skipping prepare"
+else
+    mira_log "tokenize + pack corpus"
+    mkdir -p "$DATA_PACKED"
+    "$PY" scripts/prepare_data.py \
+        --corpus-dir "$DATA_RAW_DIR" \
+        --out-dir "$DATA_PACKED" \
+        --seq-len 1024 \
+        --vocab-size 24000
+fi
 
 # 2. pre-train ---------------------------------------------------------------
 mira_log "pre-train (${MAX_STEPS} steps)"
