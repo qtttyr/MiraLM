@@ -14,6 +14,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PY="${ROOT}/.venv/bin/python"
+# fall back to system python when no local venv (e.g. Kaggle)
+[ -x "$PY" ] || PY="$(command -v python3 || echo python3)"
 cd "$ROOT"
 
 DATA_RAW_DIR="${DATA_RAW_DIR:?set DATA_RAW_DIR to the raw corpus root}"

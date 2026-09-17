@@ -1,4 +1,8 @@
-PY ?= .venv/bin/python
+# Prefer the local venv; fall back to system python (e.g. Kaggle) when absent.
+# Override with: make PY=python3.11 ...
+ifeq ($(origin PY), undefined)
+  PY := $(shell if test -x .venv/bin/python; then echo .venv/bin/python; else command -v python3 || echo python3; fi)
+endif
 SAMPLE ?= configs/model_sparsemind.yaml
 
 .PHONY: setup params check test prepare-data train build-sft finetune eval demo screenshots
