@@ -46,6 +46,25 @@ class MoEConfig:
         return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
 
 
+def _coerce(field_type, value):
+    """Cast YAML values to their dataclass-annotated type.
+
+    PyYAML leaves numbers like `1e-3` (no decimal point) as str; coerce here so
+    configs written either way always parse into numbers.
+    """
+    if field_type in (float, int) and not isinstance(value, field_type):
+        try:
+            return field_type(value)
+        except (TypeError, ValueError):
+            return value
+    return value
+
+
+def _coerce_dict(cls, d: Dict[str, Any]) -> Dict[str, Any]:
+    hints = {k: t for k, t in __import__("typing").get_type_hints(cls).items() if k in d}
+    return {k: _coerce(hints[k], v) if k in hints else v for k, v in d.items()}
+
+
 @dataclass
 class TrainingConfig:
     """Training hyper-parameters (does NOT affect the parameter budget)."""
@@ -70,7 +89,8 @@ class TrainingConfig:
     def from_yaml(cls, path: Union[str, Path]) -> "TrainingConfig":
         with open(path, "r", encoding="utf-8") as f:
             d = yaml.safe_load(f)
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+        d = {k: v for k, v in d.items() if k in cls.__dataclass_fields__}
+        return cls(**_coerce_dict(cls, d))
 
     def to_dict(self) -> Dict[str, Any]:
         return dict(self.__dict__)
@@ -157,7 +177,7 @@ class ModelConfig:
     @classmethod
     def from_yaml(cls, path: Union[str, Path]) -> "ModelConfig":
         with open(path, "r", encoding="utf-8") as f:
-            return cls.from_dict(yaml.safe_load(f))
+            return cls.from_dict(_coerce_dict(cls, yaml.safe_load(f)))
 
     def to_dict(self) -> Dict[str, Any]:
         d = {k: getattr(self, k) for k in self.__dataclass_fields__ if k != "mamba" and k != "moe"}
