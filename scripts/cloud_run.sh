@@ -10,6 +10,8 @@
 #   MAX_STEPS      override training steps (default: 20000)
 #   SFT_STEPS      override SFT steps (default: 2000)
 #   MODEL_CONFIGS  comma list of configs to gate+train (default: sparsemind)
+#   HF_REPO        (optional) repo id to push the final SFT weights to Hub
+#   KAGGLE_OUT     (optional) /kaggle/work equivalent that survives the session
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -93,6 +95,21 @@ mira_log "submission screenshots (heatmap + curves + demo outputs)"
     --sft-ckpt "$CKPT_DIR-sft/last" \
     --trace "$CKPT_DIR/trace.csv" \
     --out-dir results/screenshots
+
+mira_log "optional: push final SFT weights to HuggingFace Hub (only if HF_REPO set)"
+if [ -n "${HF_REPO:-}" ]; then
+    if [ -d "$CKPT_DIR-sft/last" ]; then
+        "$PY" scripts/push_to_hub.py "$CKPT_DIR-sft/last" \
+            --repo "$HF_REPO" \
+            --token "${HF_TOKEN:-}" \
+            ${HF_PRIVATE:---private} \
+            --commit-message "MiraLM: SFT-${SFT_STEPS} @ ${MAX_STEPS} pretrain steps"
+    else
+        mira_log "no final SFT checkpoint yet — skipping hub push"
+    fi
+else
+    mira_log "HF_REPO not set — skipping hub push (final weights stay local)"
+fi
 
 mira_log "ALL DONE — artifacts in results/, checkpoints in ${CKPT_DIR}*"
 
