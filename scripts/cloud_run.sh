@@ -14,6 +14,8 @@
 #   KAGGLE_OUT     (optional) /kaggle/work equivalent that survives the session
 set -euo pipefail
 
+mira_log() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PY="${ROOT}/.venv/bin/python"
 # fall back to system python when no local venv (e.g. Kaggle)
@@ -37,8 +39,6 @@ if [ -z "${MIRALM_PERSIST_DIR:-}" ] && [ -d "/kaggle/output" ]; then
     export MIRALM_PERSIST_DIR
     mira_log "mirroring every checkpoint save to ${MIRALM_PERSIST_DIR} (survives session)"
 fi
-
-mira_log() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 
 # 0. gates --------------------------------------------------------------------
 mira_log "parameter-budget gates"
