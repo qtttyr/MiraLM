@@ -228,6 +228,8 @@ class Trainer:
         print(f"resumed from {path} at step={step} loss={loss:.4f}")
 
     def save_checkpoint(self, path: Path, loss: float):
+        import json as _json
+
         path.mkdir(parents=True, exist_ok=True)
         wrapper = MiraLMForCausalLM(MiraConfig.from_model_config(self.cfg))
         wrapper.model.load_state_dict(self.model.state_dict(), strict=True)
@@ -247,8 +249,8 @@ class Trainer:
                     "unk_token": " unk",
                     "model_max_length": 1024,
                 }, indent=2), encoding="utf-8")
-            meta = {"step": self.step_num, "loss": float(loss), "perplexity": math.exp(loss)}
-            (path / "train_meta.json").write_text(_json.dumps(meta, indent=2), encoding="utf-8")
+        meta = {"step": self.step_num, "loss": float(loss), "perplexity": math.exp(loss)}
+        (path / "train_meta.json").write_text(_json.dumps(meta, indent=2), encoding="utf-8")
         self._mirror_persist(path, loss)
         print(f"  saved checkpoint: {path} (step={self.step_num}, loss={loss:.4f})")
 
