@@ -126,4 +126,10 @@ mira_log "ALL DONE — artifacts in results/, checkpoints in ${CKPT_DIR}*"
 if [ -n "${KAGGLE_OUT:-}" ] && [ -d "$KAGGLE_OUT" ]; then
     mira_log "copying artifacts to persistent $KAGGLE_OUT"
     cp -r "$CKPT_DIR" "$DATA_PACKED" results "$KAGGLE_OUT/" 2>/dev/null || true
+    # dated full snapshot for the jury / rollback — one per run, timestamped.
+    SNAP="$(date +%Y-%m-%d_%H%M)"
+    SNAP_DIR="$KAGGLE_OUT/snapshots/$SNAP"
+    mkdir -p "$SNAP_DIR"
+    cp -r "$CKPT_DIR" "$CKPT_DIR-sft" "$DATA_PACKED" results "$SNAP_DIR/" 2>/dev/null || true
+    mira_log "dated snapshot -> $SNAP_DIR (weights + corpus + results survive the 12h kill)"
 fi
