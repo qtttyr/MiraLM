@@ -172,9 +172,24 @@ mira_log "fine-tune on structured output (${SFT_STEPS} steps)"
     --resume "$CKPT_DIR/last" \
     --max-steps "$SFT_STEPS"
 
+# From here on, steps are INDEPENDENT and non-fatal. The script runs under
+# `set -e`, so one failure (lm-eval unable to download a dataset, a tokenizer
+# hiccup) would abort the run and take the router report, the demo recording,
+# the screenshots and the final mirror down with it. A submission missing one
+# metric beats no submission at all.
+run_step() {
+    local label="$1"; shift
+    if "$@"; then
+        mira_log "OK   ${label}"
+    else
+        mira_log "FAIL ${label} - continuing, other artifacts still produced"
+    fi
+}
+
+
 # 4. eval + screenshots ------------------------------------------------------
-mira_log "mandatory multiple-choice benchmarks via lm-evaluation-harness"
-"$PY" scripts/eval_harness.py \
+run_step "mandatory MC benchmarks (lm-evaluation-harness)" \
+    "$PY" scripts/eval_harness.py \
     --ckpt-dir "$CKPT_DIR-sft/last" \
     --output "results/eval_mira.json" \
     --batch-size 4
@@ -182,8 +197,8 @@ mira_log "mandatory multiple-choice benchmarks via lm-evaluation-harness"
 # The rules score "perplexity on a held-out slice of WikiText-103" — lm-eval's
 # stock `wikitext` task is wikitext-2 and is not a held-out slice, so the fifth
 # metric is measured here instead.
-mira_log "held-out WikiText-103 word-level perplexity"
-"$PY" scripts/eval_wikitext103.py \
+run_step "held-out WikiText-103 word-level perplexity" \
+    "$PY" scripts/eval_wikitext103.py \
     --ckpt-dir "$CKPT_DIR-sft/last" \
     --output "results/eval_wikitext103.json" \
     --lines 2000 \
@@ -191,25 +206,29 @@ mira_log "held-out WikiText-103 word-level perplexity"
 
 # Router health on the real corpus — the number behind the expert heatmap, and
 # the evidence that the semantic seeding did something.
-mira_log "MoE router report on real corpus"
-"$PY" scripts/router_report.py \
+run_step "MoE router report on real corpus" \
+    "$PY" scripts/router_report.py \
     --ckpt-dir "$CKPT_DIR/last" \
     --data-dir "$DATA_PACKED" \
     --chunks 512 \
     --output "results/router_report.json" \
     --heatmap "results/screenshots/expert_heatmap.png"
 
-mira_log "recording real demo generations (the site replays these verbatim)"
-"$PY" scripts/record_demo.py \
+run_step "recording real demo generations (site replays these verbatim)" \
+    "$PY" scripts/record_demo.py \
     --ckpt-dir "$CKPT_DIR-sft/last" \
     --output "results/demo_outputs.json"
 
-mira_log "submission screenshots (heatmap + curves + demo outputs)"
-"$PY" scripts/make_screenshots.py \
+run_step "submission screenshots (heatmap + curves + demo table)" \
+    "$PY" scripts/make_screenshots.py \
     --ckpt-dir "$CKPT_DIR/last" \
     --sft-ckpt "$CKPT_DIR-sft/last" \
     --trace "$CKPT_DIR/trace.csv" \
     --out-dir results/screenshots
+
+# README numbers come from the artifacts just written; never let this throw.
+run_step "rendering the README from measured values" \
+    "$PY" scripts/fill_readme.py --write
 
 mira_log "optional: push final SFT weights to HuggingFace Hub (only if HF_REPO set)"
 if [ -n "${HF_REPO:-}" ]; then
