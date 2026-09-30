@@ -10,6 +10,7 @@ from __future__ import annotations
 import csv
 import math
 import os
+import sys
 import time
 from pathlib import Path
 from typing import Any, Optional
@@ -61,6 +62,19 @@ class Trainer:
         self._last_loss: float = math.inf
         self._csv_file: Optional[Any] = None
         self._csv_writer = None
+        # wall-clock throughput: the submission requires hardware / wall time /
+        # approximate compute, so measure it here rather than guess later.
+        self._t_start = time.time()
+        self.tokens_done = self.step_num * self.tc.batch_size * self.loader.seq_len
+
+    @property
+    def elapsed_s(self) -> float:
+        return time.time() - self._t_start
+
+    @property
+    def tokens_per_s(self) -> float:
+        e = self.elapsed_s
+        return self.tokens_done / e if e > 0 else 0.0
 
     def _make_optimizer(self):
         decay, no_decay = [], []
@@ -129,6 +143,7 @@ class Trainer:
             self.optimizer.param_groups[0]["lr"] = lr
             self.optimizer.param_groups[1]["lr"] = lr
             self._last_loss = float(loss.detach())
+            self.tokens_done += self.tc.batch_size * self.loader.seq_len
 
             if self.tc.log_interval > 0 and (self.step_num + 1) % self.tc.log_interval == 0:
                 self._log(self.step_num + 1, lr, float(loss.detach()), accum_metrics)
@@ -145,7 +160,8 @@ class Trainer:
             self._wandb.log({"train/final_perplexity": math.exp(self._last_loss)})
         if self._csv_file:
             self._csv_file.close()
-        print("training complete")
+        print(f"training complete — {self.tokens_done:,} tokens, "
+              f"{self.elapsed_s / 3600:.2f} h wall, {self.tokens_per_s:,.0f} tok/s")
 
     def _try_init_wandb(self) -> Any:
         """Optional W&B logging (via WANDB_API_KEY or `wandb login`).
@@ -177,13 +193,19 @@ class Trainer:
             return None
 
     def _log(self, step, lr, loss, metrics):
-        vals = {"step": step, "lr": lr, "loss": loss, **metrics, "load": self._expert_load_str()}
+        vals = {
+            "step": step, "lr": lr, "loss": loss, **metrics,
+            "load": self._expert_load_str(),
+            "tok/s": self.tokens_per_s,
+            "elapsed_h": self.elapsed_s / 3600.0,
+        }
         line = "  ".join(f"{k}={v:.6f}" if isinstance(v, float) else f"{k}={v}" for k, v in vals.items())
         print(f"[{step:>6d}] {line}")
         self._write_csv(vals)
         if self._wandb is not None:
             self._wandb.log(
-                {"step": step, "train/loss": loss, "train/perplexity": math.exp(loss), "train/lr": lr}
+                {"step": step, "train/loss": loss, "train/perplexity": math.exp(loss),
+                 "train/lr": lr, "train/tokens_per_s": self.tokens_per_s}
             )
 
     def _write_csv(self, vals):
@@ -249,10 +271,20 @@ class Trainer:
                     "unk_token": " unk",
                     "model_max_length": 1024,
                 }, indent=2), encoding="utf-8")
-        meta = {"step": self.step_num, "loss": float(loss), "perplexity": math.exp(loss)}
+        # self.step_num is 0-based inside the loop, so N completed steps means
+        # step_num == N-1. Persist the *completed* count, otherwise every resume
+        # replays the final optimizer step (and re-consumes its data batch).
+        meta = {
+            "step": self.step_num + 1,
+            "loss": float(loss),
+            "perplexity": math.exp(loss),
+            "tokens": int(self.tokens_done),
+            "elapsed_h": round(self.elapsed_s / 3600.0, 4),
+            "tokens_per_s": round(self.tokens_per_s, 2),
+        }
         (path / "train_meta.json").write_text(_json.dumps(meta, indent=2), encoding="utf-8")
         self._mirror_persist(path, loss)
-        print(f"  saved checkpoint: {path} (step={self.step_num}, loss={loss:.4f})")
+        print(f"  saved checkpoint: {path} (step={meta['step']}, loss={loss:.4f})")
 
     def _mirror_persist(self, path: Path, loss: float) -> None:
         """Best-effort copy of a freshly saved checkpoint into a persistent dir.
@@ -276,7 +308,3 @@ class Trainer:
             print(f"  mirrored checkpoint -> {target} (persistent)")
         except Exception as e:  # never break training over a mirror failure
             print(f"  [warn] mirror to {target} failed ({e}) — continuing", file=sys.stderr)
-        meta = {"step": self.step_num, "loss": loss}
-        import json as _json2
-        (path / "train_meta.json").write_text(_json2.dumps(meta), encoding="utf-8")
-        print(f"  saved checkpoint: {path} (step={self.step_num}, loss={loss:.4f})")

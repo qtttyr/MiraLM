@@ -5,7 +5,7 @@ ifeq ($(origin PY), undefined)
 endif
 SAMPLE ?= configs/model_sparsemind.yaml
 
-.PHONY: setup params check test prepare-data train build-sft finetune eval demo screenshots
+.PHONY: setup params check test prepare-data train build-sft finetune eval eval-wiki router report demo screenshots
 
 ## bootstrap: create venv and install requirements
 setup:
@@ -47,10 +47,25 @@ finetune:
 		--data-dir data/sft --ckpt-dir checkpoints/mira-sft \
 		--resume checkpoints/mira/last --max-steps 2000
 
-## run the five mandatory GIBC V2 benchmarks (lm-evaluation-harness)
+## run the four mandatory GIBC V2 multiple-choice benchmarks (lm-evaluation-harness)
 eval:
 	$(PY) scripts/eval_harness.py --ckpt-dir checkpoints/mira-sft/last \
 		--output results/eval_mira.json --batch-size 4
+
+## held-out WikiText-103 word-level perplexity (the fifth scored metric)
+eval-wiki:
+	$(PY) scripts/eval_wikitext103.py --ckpt-dir checkpoints/mira-sft/last \
+		--output results/eval_wikitext103.json --lines 2000
+
+## MoE router health on the real corpus (expert x domain routing matrix)
+router:
+	$(PY) scripts/router_report.py --ckpt-dir checkpoints/mira/last \
+		--data-dir data/packed --chunks 512 \
+		--output results/router_report.json
+
+## render the README's measured numbers from the real artifacts (never invents)
+report:
+	$(PY) scripts/fill_readme.py --write
 
 ## interactive structured-output demo
 demo:

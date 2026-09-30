@@ -30,14 +30,59 @@ SFT_STEPS="${SFT_STEPS:-2000}"
 MODEL_CONFIG="${MODEL_CONFIG:-configs/model_sparsemind.yaml}"
 TRAIN_CONFIG="${TRAIN_CONFIG:-configs/train_sparsemind.yaml}"
 
-# Persistent mirror for every fresh checkpoint. Kaggle wipes /kaggle/working /
-# /kaggle/working but keeps /kaggle/output; the trainer copies each save there,
-# so the last N steps survive the 12h session kill — no manual snapshot needed.
-# This is pure insurance: if the target is unwritable, training just continues.
+# Persistent mirror for every fresh checkpoint. Kaggle wipes /kaggle/working on
+# every session restart (including "Save & Run All") but keeps /kaggle/output.
+# The trainer copies each save into MIRALM_PERSIST_DIR; the restore block below
+# copies them BACK so a re-run resumes instead of retraining from step 0.
 if [ -z "${MIRALM_PERSIST_DIR:-}" ] && [ -d "/kaggle/output" ]; then
     MIRALM_PERSIST_DIR="/kaggle/output/persist-${CKPT_DIR##*/}"
     export MIRALM_PERSIST_DIR
     mira_log "mirroring every checkpoint save to ${MIRALM_PERSIST_DIR} (survives session)"
+fi
+
+# Directory-level mirror for everything a fresh session would otherwise lose:
+# the packed corpus, the SFT weights, results and the loss trace.
+PERSIST_ROOT="${PERSIST_ROOT:-/kaggle/output/miralm-persist}"
+if [ -d "/kaggle/output" ] && [ -z "${MIRALM_PERSIST_DIR:-}" ]; then
+    PERSIST_ROOT="/kaggle/output/miralm-persist"
+fi
+
+# _mirror_tree <src> <dst-in-persist-root>   best effort, never fatal
+_mirror_tree() {
+    [ -e "$1" ] || return 0
+    mkdir -p "$2" 2>/dev/null || return 0
+    cp -r "$1/." "$2/" 2>/dev/null || true
+}
+
+# _restore_tree <src-in-persist-root> <dst>   only if dst is missing
+_restore_tree() {
+    [ -e "$1" ] || return 0
+    if [ -e "$2" ]; then
+        mira_log "restore: ${2} already exists — keeping the live copy"
+        return 0
+    fi
+    mkdir -p "$(dirname "$2")" 2>/dev/null || return 0
+    cp -r "$1" "$2" 2>/dev/null || true
+    [ -e "$2" ] && mira_log "restored ${2} from ${PERSIST_ROOT}"
+}
+
+# ---------------------------------------------------------------------------
+# 0a. RESTORE — must run before anything else touches the filesystem.
+#     After a "Save & Run All" commit, /kaggle/working is empty. Without this
+#     the run would silently restart from step 0 and re-pack the whole corpus.
+# ---------------------------------------------------------------------------
+if [ -d "$PERSIST_ROOT" ]; then
+    mira_log "found persistent store at ${PERSIST_ROOT} — restoring"
+    _restore_tree "$PERSIST_ROOT/checkpoints"    "$ROOT/checkpoints"
+    _restore_tree "$PERSIST_ROOT/data/packed"    "$ROOT/$DATA_PACKED"
+    _restore_tree "$PERSIST_ROOT/results"        "$ROOT/results"
+    # the trainer's per-save mirror is the authoritative copy of the newest
+    # weights; prefer it when the working-dir checkpoint is absent
+    if [ -n "${MIRALM_PERSIST_DIR:-}" ] && [ -d "$MIRALM_PERSIST_DIR" ]; then
+        _restore_tree "$MIRALM_PERSIST_DIR" "$ROOT/${CKPT_DIR}/last"
+    fi
+else
+    mira_log "no persistent store yet at ${PERSIST_ROOT} — starting fresh"
 fi
 
 # 0. gates --------------------------------------------------------------------
@@ -58,11 +103,24 @@ else
         --vocab-size 24000
 fi
 
+# The packed corpus lives in /kaggle/working, which a "Save & Run All" commit
+# wipes. Re-packing it means re-tokenising the whole corpus (hours), so mirror it
+# into the persistent store the moment it exists.
+_mirror_tree "$DATA_PACKED" "$PERSIST_ROOT/$DATA_PACKED"
+mira_log "corpus shards mirrored to $PERSIST_ROOT/$DATA_PACKED"
+
 # 2. pre-train ---------------------------------------------------------------
+# Require train_meta.json, not just the directory: a checkpoint dir that exists
+# but is empty (e.g. a half-finished restore) would make --resume crash on a
+# missing metadata file instead of training from scratch.
 RESUME_ARGS=""
-if [ -d "$CKPT_DIR/last" ]; then
+if [ -f "$CKPT_DIR/last/train_meta.json" ]; then
     RESUME_ARGS="--resume $CKPT_DIR/last"
     mira_log "pre-train checkpoint found — resuming from $CKPT_DIR/last"
+elif [ -d "$CKPT_DIR/last" ]; then
+    mira_log "WARNING: $CKPT_DIR/last exists but has no train_meta.json — ignoring it and training from scratch"
+else
+    mira_log "no pre-train checkpoint — training from scratch"
 fi
 mira_log "pre-train (${MAX_STEPS} steps)"
 "$PY" scripts/train.py \
@@ -93,11 +151,36 @@ mira_log "fine-tune on structured output (${SFT_STEPS} steps)"
     --max-steps "$SFT_STEPS"
 
 # 4. eval + screenshots ------------------------------------------------------
-mira_log "mandatory benchmarks via lm-evaluation-harness"
+mira_log "mandatory multiple-choice benchmarks via lm-evaluation-harness"
 "$PY" scripts/eval_harness.py \
     --ckpt-dir "$CKPT_DIR-sft/last" \
     --output "results/eval_mira.json" \
     --batch-size 4
+
+# The rules score "perplexity on a held-out slice of WikiText-103" — lm-eval's
+# stock `wikitext` task is wikitext-2 and is not a held-out slice, so the fifth
+# metric is measured here instead.
+mira_log "held-out WikiText-103 word-level perplexity"
+"$PY" scripts/eval_wikitext103.py \
+    --ckpt-dir "$CKPT_DIR-sft/last" \
+    --output "results/eval_wikitext103.json" \
+    --lines 2000 \
+    --save-slice "results/wikitext103_heldout_slice.txt"
+
+# Router health on the real corpus — the number behind the expert heatmap, and
+# the evidence that the semantic seeding did something.
+mira_log "MoE router report on real corpus"
+"$PY" scripts/router_report.py \
+    --ckpt-dir "$CKPT_DIR/last" \
+    --data-dir "$DATA_PACKED" \
+    --chunks 512 \
+    --output "results/router_report.json" \
+    --heatmap "results/screenshots/expert_heatmap.png"
+
+mira_log "recording real demo generations (the site replays these verbatim)"
+"$PY" scripts/record_demo.py \
+    --ckpt-dir "$CKPT_DIR-sft/last" \
+    --output "results/demo_outputs.json"
 
 mira_log "submission screenshots (heatmap + curves + demo outputs)"
 "$PY" scripts/make_screenshots.py \
@@ -122,6 +205,18 @@ else
 fi
 
 mira_log "ALL DONE — artifacts in results/, checkpoints in ${CKPT_DIR}*"
+
+# ---------------------------------------------------------------------------
+# 5. final mirror — everything the next session needs to resume or resubmit.
+# ---------------------------------------------------------------------------
+mira_log "mirroring artifacts into the persistent store: $PERSIST_ROOT"
+_mirror_tree "$CKPT_DIR"     "$PERSIST_ROOT/checkpoints/${CKPT_DIR##*/}"
+_mirror_tree "${CKPT_DIR}-sft" "$PERSIST_ROOT/checkpoints/${CKPT_DIR##*/}-sft"
+_mirror_tree "$DATA_PACKED"  "$PERSIST_ROOT/$DATA_PACKED"
+_mirror_tree "results"       "$PERSIST_ROOT/results"
+[ -f "$CKPT_DIR/trace.csv" ] && _mirror_tree "$CKPT_DIR" "$PERSIST_ROOT/checkpoints/${CKPT_DIR##*/}"
+mira_log "persistent store contents:"
+find "$PERSIST_ROOT" -maxdepth 3 2>/dev/null | head -30 || true
 
 if [ -n "${KAGGLE_OUT:-}" ] && [ -d "$KAGGLE_OUT" ]; then
     mira_log "copying artifacts to persistent $KAGGLE_OUT"
