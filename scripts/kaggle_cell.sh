@@ -1,18 +1,43 @@
-#!/usr/bin/env bash
-# ---------------------------------------------------------------------------
-# One-shot Kaggle bootstrap: clone/pull the repo, then run the full pipeline.
+# =============================================================================
+# KAGGLE CELL #1  —  put this as the FIRST cell of the notebook, once.
+# =============================================================================
+# Why this exact form. "Save & Run All" wipes /kaggle/working on EVERY run, so
+# a notebook whose first cell starts with `cd /kaggle/working/MiraLM` dies
+# immediately on the second run with:
+#     cd: /kaggle/working/MiraLM: No such file or directory
+#     bash: scripts/cloud_run.sh: No such file or directory
+#     tee: /kaggle/output/run.log: No such file or directory
+# All three are the same failure cascading from the missing directory.
 #
-# Why this exists: after "Save & Run All" Kaggle wipes /kaggle/working, so a
-# notebook that relies on an earlier cell having cloned the repo dies with
-# "cd: /kaggle/working/MiraLM: No such file or directory" and cascades into
-# "scripts/cloud_run.sh: No such file" and "tee: /kaggle/output/run.log:
-# No such file". This cell depends on nothing but the internet.
-#
-# Usage (single Kaggle %%bash cell):
-#   bash scripts/kaggle_cell.sh
-#
-# Everything is opt-in via env vars; sensible defaults are baked in.
-# ---------------------------------------------------------------------------
+# This cell depends on nothing but the network: it creates the dirs, clones or
+# resets the repo, and only then enters it. /kaggle/output survives the wipe,
+# so the weights and the packed corpus come back from there.
+# =============================================================================
+
+REPO_URL="https://github.com/qtttyr/MiraLM.git"
+MAX_STEPS="${MAX_STEPS:-15000}"
+SFT_STEPS="${SFT_STEPS:-1000}"
+
+mkdir -p /kaggle/working /kaggle/output
+cd /kaggle/working || exit 1
+
+if [ -d MiraLM/.git ]; then
+    echo ">>> repo present, resetting to origin/main"
+    git -C MiraLM fetch -q --depth 1 origin
+    git -C MiraLM reset -q --hard origin/main
+else
+    echo ">>> cloning $REPO_URL"
+    git clone -q --depth 1 "$REPO_URL" MiraLM
+fi
+
+cd MiraLM || exit 1
+echo ">>> repo HEAD: $(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+test -f scripts/kaggle_cell.sh || { echo "FATAL: bootstrap missing"; exit 1; }
+
+MAX_STEPS="$MAX_STEPS" SFT_STEPS="$SFT_STEPS" \
+    bash scripts/kaggle_cell.sh 2>&1 | tee /kaggle/output/run.log
+exit ${PIPESTATUS[0]}
+
 set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/qtttyr/MiraLM.git}"
@@ -62,7 +87,7 @@ export PERSIST_ROOT="${PERSIST_ROOT:-$OUT/miralm-persist}"
 export MIRALM_PERSIST_DIR="${MIRALM_PERSIST_DIR:-$OUT/persist-mira}"
 export DATA_PACKED="${DATA_PACKED:-data/packed}"
 export CKPT_DIR="${CKPT_DIR:-checkpoints/mira}"
-export DATA_RAW_DIR="${DATA_RAW_DIR:-$WORK/data/raw}"
+export DATA_RAW_DIR="${DATA_RAW_DIR:-$REPO_DIR/data/raw}"
 export MAX_STEPS="${MAX_STEPS:-20000}"
 export SFT_STEPS="${SFT_STEPS:-2000}"
 log "persist root: $PERSIST_ROOT"
