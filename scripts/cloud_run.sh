@@ -56,14 +56,21 @@ _mirror_tree() {
 
 # _restore_tree <src-in-persist-root> <dst>   only if dst is missing
 _restore_tree() {
-    [ -e "$1" ] || return 0
+    if [ ! -e "$1" ]; then
+        mira_log "restore: nothing at $1"
+        return 0
+    fi
     if [ -e "$2" ]; then
         mira_log "restore: ${2} already exists — keeping the live copy"
         return 0
     fi
     mkdir -p "$(dirname "$2")" 2>/dev/null || return 0
-    cp -r "$1" "$2" 2>/dev/null || true
-    [ -e "$2" ] && mira_log "restored ${2} from ${PERSIST_ROOT}"
+    if cp -r "$1" "$2" 2>/dev/null && [ -e "$2" ]; then
+        mira_log "restored ${2}"
+    else
+        mira_log "restore FAILED: $1 -> $2"
+    fi
+    return 0
 }
 
 # ---------------------------------------------------------------------------
@@ -74,7 +81,7 @@ _restore_tree() {
 if [ -d "$PERSIST_ROOT" ]; then
     mira_log "found persistent store at ${PERSIST_ROOT} — restoring"
     _restore_tree "$PERSIST_ROOT/checkpoints"    "$ROOT/checkpoints"
-    _restore_tree "$PERSIST_ROOT/data/packed"    "$ROOT/$DATA_PACKED"
+    _restore_tree "$PERSIST_ROOT/$DATA_PACKED"   "$ROOT/$DATA_PACKED"
     _restore_tree "$PERSIST_ROOT/results"        "$ROOT/results"
     # the trainer's per-save mirror is the authoritative copy of the newest
     # weights; prefer it when the working-dir checkpoint is absent
@@ -83,6 +90,21 @@ if [ -d "$PERSIST_ROOT" ]; then
     fi
 else
     mira_log "no persistent store yet at ${PERSIST_ROOT} — starting fresh"
+fi
+
+# Fail loudly rather than silently re-packing: prepare_data exits with
+# "no text files found" when DATA_RAW_DIR is gone, which looks like a data bug
+# but is really a lost persistent store.
+if [ ! -f "$ROOT/$DATA_PACKED/manifest.json" ]; then
+    mira_log "WARNING: no packed corpus at $ROOT/$DATA_PACKED after restore"
+    mira_log "  persistent store holds:"
+    ls -la "$PERSIST_ROOT" 2>/dev/null | sed 's/^/    /' || true
+    ls -la "$PERSIST_ROOT/$DATA_PACKED" 2>/dev/null | sed 's/^/    /' || true
+    if [ ! -d "$DATA_RAW_DIR" ]; then
+        mira_log "  ABORT: neither a packed corpus nor a raw corpus dir exists."
+        mira_log "  Re-run scripts/fetch_corpus.py first, or restore $PERSIST_ROOT."
+        exit 1
+    fi
 fi
 
 # 0. gates --------------------------------------------------------------------
