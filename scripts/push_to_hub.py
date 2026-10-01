@@ -14,9 +14,9 @@ Example:
 """
 
 import argparse
-import json
 import os
 import pathlib
+import sys
 
 from huggingface_hub import create_repo, upload_folder
 
@@ -36,7 +36,7 @@ def main() -> int:
 
     token = args.token or os.environ.get("HF_TOKEN")
     if not token:
-        print("no HF_TOKEN — skipping hub push (set HF_TOKEN to enable)", file=os.stderr)
+        print("no HF_TOKEN — skipping hub push (set HF_TOKEN to enable)", file=sys.stderr)
         return 2
 
     print(f"ensuring repo {args.repo} (private={args.private})")
