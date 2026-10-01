@@ -35,8 +35,12 @@ BEST="$REPO/checkpoints/mira/best"
 LAST="$REPO/checkpoints/mira/last"
 [ -d "$BEST" ] || die "missing $BEST — nothing to publish"
 
-for f in config.json model.safetensors tokenizer.json; do
-    [ -f "$BEST/$f" ] || die "$BEST is not HF-loadable (no $f)"
+log "best/ contains: $(ls -1 "$BEST" 2>/dev/null | tr '\n' ' ')"
+log "last/ contains: $(ls -1 "$LAST" 2>/dev/null | tr '\n' ' ')"
+
+# The weights must be present; the tokenizer is checked (and rescued) below.
+for f in config.json model.safetensors; do
+    [ -f "$BEST/$f" ] || die "$BEST is not an HF checkpoint (no $f)"
 done
 
 log "source : $BEST"
@@ -47,6 +51,109 @@ if [ -f "$LAST/train_meta.json" ]; then
     log "refusing 'last' — the diverged run, kept on disk as evidence only:"
     cat "$LAST/train_meta.json"
 fi
+
+# ---------------------------------------------------------- tokenizer ------
+# A checkpoint dir is only loadable if it ships the tokenizer that trained it.
+# trainer.save_checkpoint writes tokenizer.json only when it was handed one, so
+# best/ can legitimately lack it while the weights are perfectly fine. Find a
+# real one, PROVE it belongs to this model, and copy it in — never guess.
+if [ ! -f "$BEST/tokenizer.json" ]; then
+    log "best/ has no tokenizer.json — searching for the one this run used"
+    python3 - "$BEST" "$REPO" <<'PY'
+import itertools
+import json
+import pathlib
+import shutil
+import sys
+
+best = pathlib.Path(sys.argv[1])
+repo = pathlib.Path(sys.argv[2])
+
+cfg_vocab = json.loads((best / "config.json").read_text(encoding="utf-8"))["vocab_size"]
+# The SFT protocol tokens must be in the vocab, or SFT/demo prompts break.
+REQUIRED = ["<|endoftext|>", "<|json|>", "<|sql|>", "<|cot|>"]
+
+
+def vocab_of(path):
+    """Reconstruct tokenizers.Tokenizer.get_vocab() without the library."""
+    d = json.loads(path.read_text(encoding="utf-8"))
+    ids = set(d.get("model", {}).get("vocab", {}))
+    ids |= {t["content"] for t in d.get("added_tokens", []) if "content" in t}
+    return ids
+
+
+def scan(paths):
+    hits = []
+    seen = set()
+    for c in paths:
+        c = pathlib.Path(c)
+        if c in seen or not c.is_file():
+            continue
+        seen.add(c)
+        try:
+            ids = vocab_of(c)
+        except Exception as exc:  # noqa: BLE001 - report and keep scanning
+            print(f"  skip  {c}  ({type(exc).__name__}: {exc})")
+            continue
+        missing = [t for t in REQUIRED if t not in ids]
+        ok = len(ids) == cfg_vocab and not missing
+        print(f"  {'OK  ' if ok else 'no  '} {c}")
+        print(f"        vocab={len(ids)} (need {cfg_vocab})  missing={missing or 'none'}")
+        if ok:
+            hits.append(c)
+    return hits
+
+
+# Priority: the same training run, then the prepared corpus, then the checkout.
+explicit = [
+    repo / "checkpoints/mira/last/tokenizer.json",
+    repo / "data/packed/tokenizer.json",
+    repo / "checkpoints/mira/tokenizer.json",
+]
+found = scan(explicit + sorted(repo.glob("checkpoints/*/tokenizer.json")))
+
+if not found:
+    print("  nothing in the checkout — expanding the search under /kaggle ...")
+    found = scan(itertools.islice(pathlib.Path("/kaggle").rglob("tokenizer.json"), 40))
+
+if not found:
+    sys.exit(
+        f"FATAL: no tokenizer.json matched vocab_size={cfg_vocab} with {REQUIRED}. "
+        "Refusing to publish a checkpoint that cannot be loaded."
+    )
+
+src = found[0]
+shutil.copy2(src, best / "tokenizer.json")
+tc = src.parent / "tokenizer_config.json"
+if tc.is_file():
+    shutil.copy2(tc, best / "tokenizer_config.json")
+    print(f"  rescued tokenizer.json + tokenizer_config.json from {src.parent}")
+else:
+    print(f"  rescued tokenizer.json from {src} (no tokenizer_config there)")
+PY
+    [ $? -eq 0 ] || die "tokenizer rescue failed — see the candidate list above"
+fi
+
+# transformer's AutoTokenizer reads this next to tokenizer.json. Mirror the
+# exact shape trainer.save_checkpoint writes, so the checkpoint loads the same
+# way the measured evaluation loaded it.
+if [ ! -f "$BEST/tokenizer_config.json" ]; then
+    cat > "$BEST/tokenizer_config.json" <<'JSON'
+{
+  "bos_token": "eos",
+  "eos_token": "eos",
+  "pad_token": "<|pad|>",
+  "unk_token": " unk",
+  "model_max_length": 1024
+}
+JSON
+    log "wrote tokenizer_config.json (trainer's template)"
+fi
+
+for f in config.json model.safetensors tokenizer.json tokenizer_config.json; do
+    [ -f "$BEST/$f" ] || die "$BEST still not HF-loadable (no $f)"
+done
+log "HF-loadable: $(ls -1 "$BEST" | tr '\n' ' ')"
 
 # -------------------------------------------------------------- token ------
 if [ -z "${HF_TOKEN:-}" ]; then
