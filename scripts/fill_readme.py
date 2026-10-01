@@ -88,12 +88,22 @@ def main() -> int:
         subs["CHINCHILLA_PCT"] = f"{tokens / (20 * 47_640_968) * 100:.1f}"
 
     # ---- the five scored metrics ------------------------------------------
+    # eval_harness.py writes {"summary": {...}, "tasks": {...}}; raw lm-eval
+    # dumps carry a top-level "results". Accept every shape rather than silently
+    # reporting "no eval_mira.json" when the file is sitting right there.
     mc = read_json(args.results / "eval_mira.json")
-    if mc and mc.get("results"):
+    mc_src: dict = {}
+    if mc:
+        mc_src = (mc.get("results") or mc.get("tasks")
+                  or mc.get("summary") or {})
+    if mc_src:
         for task, key in [("hellaswag", "HELLASWAG"), ("arc_easy", "ARC_E"),
                           ("piqa", "PIQA"), ("winogrande", "WINOGRANDE")]:
-            r = mc["results"].get(task, {})
-            v = r.get("acc_norm,none", r.get("acc,none"))
+            r = mc_src.get(task) or {}
+            if not isinstance(r, dict):
+                continue
+            v = (r.get("acc_norm,none") or r.get("acc,none")
+                 or r.get("accuracy"))
             if v is None:
                 missing.append(f"{key} (no acc in eval_mira.json for {task})")
             else:
