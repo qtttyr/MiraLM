@@ -31,6 +31,27 @@ if str(ROOT) not in sys.path:
 TASKS = ["hellaswag", "arc_easy", "piqa", "winogrande", "wikitext"]
 
 
+def resolve_prefix_token_id(tokenizer_dir: str) -> int:
+    """lm-eval calls `tokenizer.decode(self.prefix_token_id)` on EVERY encode
+    (models/huggingface.py:1053). It defaults prefix_token_id to
+    `convert_tokens_to_ids(" ")`, which is None for a ByteLevel BPE — a space is
+    'Ġ' (U+0120) there, never ' ' — so `decode(None)` raises TypeError before any
+    task is scored. Point it at the tokenizer's own BOS/EOS id, which is what
+    `has_bos_prefix` is actually meant to compare against.
+    """
+    try:
+        from transformers import AutoTokenizer
+        tk = AutoTokenizer.from_pretrained(str(tokenizer_dir),
+                                           trust_remote_code=True)
+        for attr in ("bos_token_id", "eos_token_id"):
+            val = getattr(tk, attr, None)
+            if val is not None:
+                return int(val)
+    except Exception as exc:  # noqa: BLE001 — never block the eval on this
+        print(f"[prefix] tokenizer probe failed ({exc}); falling back to id 0")
+    return 0
+
+
 def run_eval(
     ckpt_dir: str,
     tokenizer_dir: str,
@@ -53,6 +74,7 @@ def run_eval(
         f"pretrained={ckpt_dir}"
         f",tokenizer={tokenizer_dir}"
         f",trust_remote_code={trust_remote_code}"
+        f",prefix_token_id={resolve_prefix_token_id(tokenizer_dir)}"
     )
     if device:
         model_args += f",device={device}"
