@@ -52,6 +52,24 @@ def resolve_prefix_token_id(tokenizer_dir: str) -> int:
     return 0
 
 
+def resolve_max_length(ckpt_dir: str, default: int = 1024) -> int:
+    """Context window the model was actually TRAINED at.
+
+    Never evaluate beyond this: RoPE is cached to max_seq_len and the stack asserts
+    on longer input, and positions past the training length are extrapolation the
+    model has never seen. Read from the checkpoint config, fall back to 1024.
+    """
+    try:
+        cfg = json.loads((Path(ckpt_dir) / "config.json").read_text(encoding="utf-8"))
+        for key in ("max_position_embeddings", "max_seq_len"):
+            val = cfg.get(key)
+            if val:
+                return int(val)
+    except Exception as exc:  # noqa: BLE001 — never block the eval on this
+        print(f"[max_length] config probe failed ({exc}); using {default}")
+    return default
+
+
 def run_eval(
     ckpt_dir: str,
     tokenizer_dir: str,
@@ -75,6 +93,7 @@ def run_eval(
         f",tokenizer={tokenizer_dir}"
         f",trust_remote_code={trust_remote_code}"
         f",prefix_token_id={resolve_prefix_token_id(tokenizer_dir)}"
+        f",max_length={resolve_max_length(ckpt_dir)}"
     )
     if device:
         model_args += f",device={device}"

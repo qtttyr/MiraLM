@@ -127,6 +127,11 @@ class MiraConfig(PretrainedConfig):
             "n_kv_heads": self.n_kv_heads,
             "d_ff": self.d_ff,
             "max_seq_len": self.max_seq_len,
+            # Standard HF field. lm-eval (and other consumers) read
+            # max_position_embeddings to size their context window; without it they
+            # fall back to 2048 and feed sequences this model was never trained on,
+            # which trips the RoPE cache assertion (max_seq_len is 1024).
+            "max_position_embeddings": self.max_seq_len,
             "norm_eps": self.norm_eps,
             "tie_weights": self.tie_weights,
             "dropout": self.dropout,
