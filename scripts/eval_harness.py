@@ -39,6 +39,7 @@ def run_eval(
     batch_size: int = 8,
     device: str | None = None,
     trust_remote_code: bool = True,
+    limit: int | None = None,
 ) -> dict:
     import lm_eval.evaluator as evaluator
     import lm_eval.tasks as tasks_mod
@@ -56,7 +57,8 @@ def run_eval(
     if device:
         model_args += f",device={device}"
 
-    print(f"evaluating: tasks={tasks}  ckpt={ckpt_dir}  batch_size={batch_size}")
+    print(f"evaluating: tasks={tasks}  ckpt={ckpt_dir}  batch_size={batch_size}"
+          + (f"  limit={limit} per task" if limit else ""))
     results = evaluator.simple_evaluate(
         model="hf",
         model_args=model_args,
@@ -64,6 +66,7 @@ def run_eval(
         batch_size=batch_size,
         fewshot_as_multiturn=False,
         apply_chat_template=False,
+        limit=limit,
     )
 
     summary: dict = {}
@@ -82,6 +85,8 @@ def run_eval(
         "model": str(ckpt_dir),
         "tasks": per_task,
         "summary": summary,
+        # recorded so a capped run can never be mistaken for a full one
+        "docs_per_task_limit": limit,
     }
     if output:
         Path(output).parent.mkdir(parents=True, exist_ok=True)
@@ -99,6 +104,8 @@ def main() -> int:
     ap.add_argument("--tasks", nargs="+", default=None)
     ap.add_argument("--batch-size", type=int, default=8)
     ap.add_argument("--device", type=str, default=None)
+    ap.add_argument("--limit", type=int, default=None,
+                    help="cap docs per task (fast deadline runs; reported in JSON)")
     args = ap.parse_args()
 
     if args.tokenizer_dir is None:
@@ -113,6 +120,7 @@ def main() -> int:
         tasks=args.tasks,
         batch_size=args.batch_size,
         device=args.device,
+        limit=args.limit,
     )
     print(json.dumps(out.get("summary", {}), indent=2))
     return 0

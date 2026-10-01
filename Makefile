@@ -25,6 +25,10 @@ check:
 figures:
 	$(PY) scripts/make_readme_figures.py
 
+## read-only: current step, loss, PPL, progress, resumability
+status:
+	$(PY) scripts/status.py
+
 ## run the test suite
 test:
 	$(PY) -m pytest -q
