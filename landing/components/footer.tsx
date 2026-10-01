@@ -1,6 +1,7 @@
-import { GITHUB, WANDB } from "@/lib/content";
+import { GITHUB, WANDB, HUGGINGFACE } from "@/lib/content";
 
 const LINKS = [
+  { label: "WEIGHTS", href: HUGGINGFACE, ext: true, note: "vaprooll/MiraLM-47M" },
   { label: "CODE", href: GITHUB, ext: true, note: "github.com/qtttyr" },
   { label: "RUNS", href: WANDB, ext: true, note: "wandb.ai · public" },
   { label: "BENCH", href: "#bench", ext: false, note: "results / eval_mira.json" },

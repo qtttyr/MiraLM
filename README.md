@@ -30,14 +30,18 @@ carries a domain tag, and a guide loss pins each expert to its domain for the fi
 
 ## Try it
 
-No hosted API — the submission *is* the weights. The `mira` model type self-registers
-with `transformers`, so it loads without `trust_remote_code`.
+No hosted API — the submission *is* the weights. Published to the Hub, and the
+`mira` model type self-registers with `transformers`, so it loads without
+`trust_remote_code`:
+
+**https://huggingface.co/vaprooll/MiraLM-47M**
 
 ```python
 from src.model.hf_interface import MiraLMForCausalLM   # registers model_type "mira"
 from transformers import AutoTokenizer
 
-ckpt = "checkpoints/mira-sft/last"
+ckpt = "vaprooll/MiraLM-47M"          # published weights (step-11,000 best)
+# ckpt = "checkpoints/mira/best"      # the same checkpoint, local path
 model = MiraLMForCausalLM.from_pretrained(ckpt).eval()
 tok   = AutoTokenizer.from_pretrained(ckpt)
 
@@ -165,7 +169,7 @@ the first 2,000 steps a guide loss softly pins each token to its domain expert, 
 | **Optimizer** | AdamW, betas (0.9, 0.95), wd 0.1 on 2-D params, clip 1.0 |
 | **LR** | cosine, warmup 1% → 1e-3 → 1e-4 |
 | **Measured throughput** | **5.10 s/step, ≈803 tokens/s** |
-| **Pre-training** | 11,000 steps = **PRETRAIN_TOKENS tokens** |
+| **Pre-training** | 11,000 steps = **45,056,000 tokens** (11,000 × 4 × 1024) |
 | **SFT** | `SFT_STEPS` steps |
 | **Wall-clock total** | 21.58 h |
 | **Approximate compute** | 21.58 h on 1x T4 (measured wall-clock, end to end) |

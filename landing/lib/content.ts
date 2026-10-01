@@ -141,3 +141,6 @@ export const NAV = [
 
 export const GITHUB = "https://github.com/qtttyr/MiraLM";
 export const WANDB = "https://wandb.ai";
+// The published weights (step-11,000 best checkpoint) — the artifact every
+// measured number on this page comes from, and what the jury can load.
+export const HUGGINGFACE = "https://huggingface.co/vaprooll/MiraLM-47M";

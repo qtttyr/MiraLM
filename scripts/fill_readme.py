@@ -125,8 +125,19 @@ def main() -> int:
     # README.md is backticked, so the bare pass bought nothing and cost accuracy.
     for key, val in sorted(subs.items(), key=lambda kv: -len(kv[0])):
         text = text.replace(f"`{key}`", val).replace(f"{{{key}}}", val)
+        # A placeholder can also be written as **KEY**. One was
+        # (`**PRETRAIN_TOKENS**`), and it shipped as a literal string in the
+        # README because the delimited-only pass never saw it. Only the exact
+        # key is matched, so a bare licence word like "PIQA" is never touched.
+        text = text.replace(f"**{key}**", f"**{val}**")
 
-    left = sorted(set(re.findall(r"`([A-Z][A-Z0-9_]{3,})`", text)))
+    # Any placeholder still literal after the pass, in either written form.
+    # Quoted or bold only: "PIQA" also appears as a plain licence-row word and
+    # must not be reported as a missing value.
+    left = sorted(
+        set(re.findall(r"`([A-Z][A-Z0-9_]{3,})`", text))
+        | set(re.findall(r"\*\*([A-Z][A-Z0-9_]{3,})\*\*", text))
+    )
     unresolved = [k for k in left if k in missing or k not in subs]
 
     if args.write and subs:
@@ -139,6 +150,11 @@ def main() -> int:
         print("\nstill missing (NOT invented):", file=sys.stderr)
         for m in missing:
             print(f"  - {m}", file=sys.stderr)
+
+    if unresolved:
+        print("\nplaceholders still literal in the README (NOT filled):", file=sys.stderr)
+        for k in unresolved:
+            print(f"  - {k}", file=sys.stderr)
     return 0
 
 
