@@ -12,7 +12,10 @@ export const EXPERTS_N = 8;
 export const TOP_K = 2;
 export const D_MODEL = 384;
 export const BUDGET = 50_000_000;
-export const TOKENS_TARGET = "2–4B";
+// Measured, not aspirational: 11,000 steps x 4 x 1024 tokens = 45,056,000.
+// The ticker renders this beside SEQ 1024 as a fact, so it must be the real
+// figure — the original "2-4B" was a target and overstated the run ~50x.
+export const TOKENS_TARGET = "45.1M";
 export const SEQ_LEN = 1024;
 
 export type StackNode = {
@@ -68,12 +71,16 @@ export type BenchRow = {
 };
 
 // ours.value filled after training → re-render automatically.
+// Measured on the step-11,000 checkpoint (train loss 2.2113, ppl 9.13) — NOT on
+// the diverged step-17,000 "last". MC runs were capped at 500 docs/task
+// (results/eval_mira.json: "docs_per_task_limit": 500), so each carries roughly
+// +/- 2 points of sampling noise; reported as measured rather than rounded up.
 export const BENCHMARKS: BenchRow[] = [
-  { id: "hellaswag", task: "HELLASWAG", metric: "acc_norm", ours: { value: null, measured: false }, gpt2: "32.7", pythia: "27–30", note: "common-sense inference, 4-way MC" },
-  { id: "arc-e", task: "ARC-EASY", metric: "acc_norm", ours: { value: null, measured: false }, gpt2: "43.3", pythia: "40–45", note: "grade-school science, 4-way MC" },
-  { id: "piqa", task: "PIQA", metric: "acc_norm", ours: { value: null, measured: false }, gpt2: "64.2", pythia: "61–63", note: "physical commonsense, 2-way MC" },
-  { id: "wino", task: "WINOGRAANDE", metric: "acc", ours: { value: null, measured: false }, gpt2: "49.9", pythia: "50–52", note: "pronoun resolution, 2-way MC" },
-  { id: "wiki", task: "WIKITEXT-103", metric: "word_ppl", ours: { value: null, measured: false }, gpt2: "~38", pythia: "~44", note: "word-level perplexity ↓ lower wins" },
+  { id: "hellaswag", task: "HELLASWAG", metric: "acc_norm", ours: { value: "33.0", measured: true }, gpt2: "32.7", pythia: "27–30", note: "common-sense inference, 4-way MC" },
+  { id: "arc-e", task: "ARC-EASY", metric: "acc_norm", ours: { value: "27.0", measured: true }, gpt2: "43.3", pythia: "40–45", note: "grade-school science, 4-way MC" },
+  { id: "piqa", task: "PIQA", metric: "acc_norm", ours: { value: "50.0", measured: true }, gpt2: "64.2", pythia: "61–63", note: "physical commonsense, 2-way MC" },
+  { id: "wino", task: "WINOGRANDE", metric: "acc", ours: { value: "50.2", measured: true }, gpt2: "49.9", pythia: "50–52", note: "pronoun resolution, 2-way MC" },
+  { id: "wiki", task: "WIKITEXT-103", metric: "word_ppl", ours: { value: "2837.6", measured: true }, gpt2: "~38", pythia: "~44", note: "held-out prose slice; our training corpus is code/math, so this domain shift dominates" },
 ];
 
 export type Principle = {

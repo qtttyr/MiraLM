@@ -1,0 +1,13 @@
+{
+  "model": "/kaggle/output/SUBMIT/model",
+  "dataset": "WikiText-103 (raw), test split, held-out slice",
+  "slice_lines": 2000,
+  "slice_seed": 1234,
+  "metric": "word_perplexity",
+  "word_perplexity": 2837.6248556550363,
+  "token_perplexity": 438.9709437592208,
+  "total_nll": 1802063.094417572,
+  "tokens_scored": 296176,
+  "words_scored": 226654,
+  "windows_scored": 2000
+}

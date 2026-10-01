@@ -81,7 +81,7 @@ python scripts/eval_wikitext103.py --ckpt-dir checkpoints/mira-sft/last \
 |---|---|---|---|---|---|
 | GPT-2 117M *(ref)* | ~32.7 | ~43.3 | ~64.2 | ~49.9 | — |
 | Pythia-70M *(ref)* | ~27–30 | ~40–45 | ~61–63 | ~50–52 | — |
-| **MiraLM-47M** | `HELLASWAG` | `ARC_E` | `PIQA` | `WINOGRANDE` | `WIKI_PPL` |
+| **MiraLM-47M** | 33.0 | 27.0 | 50.0 | 50.2 | 2837.6 |
 
 > **On the WikiText-103 column.** The rules ask for perplexity on a *held-out slice of
 > WikiText-103*. lm-eval's stock `wikitext` task does not do that — it scores
@@ -90,8 +90,8 @@ python scripts/eval_wikitext103.py --ckpt-dir checkpoints/mira-sft/last \
 > slice (seed 1234, 2,000 prose lines, 226,654 words) of the WikiText-103 **test** split,
 > which the training pipeline never reads. The slice is committed, so it is auditable.
 
-**Read the table honestly.** At 47.6M parameters and `PRETRAIN_TOKENS` tokens — about
-`CHINCHILLA_PCT`% of the Chinchilla-optimal budget for this model size — this is
+**Read the table honestly.** At 47.6M parameters and 45,056,000 tokens — about
+4.7% of the Chinchilla-optimal budget for this model size — this is
 undertrained by construction. Multiple-choice commonsense sits near its random floor here,
 and it will not beat GPT-2-117M, which saw orders of magnitude more data. The claim is
 not "we win on HellaSwag". It is that the whole pipeline — architecture, budget
@@ -165,17 +165,17 @@ the first 2,000 steps a guide loss softly pins each token to its domain expert, 
 | **Optimizer** | AdamW, betas (0.9, 0.95), wd 0.1 on 2-D params, clip 1.0 |
 | **LR** | cosine, warmup 1% → 1e-3 → 1e-4 |
 | **Measured throughput** | **5.10 s/step, ≈803 tokens/s** |
-| **Pre-training** | `PRETRAIN_STEPS` steps = **PRETRAIN_TOKENS tokens** |
+| **Pre-training** | 11,000 steps = **PRETRAIN_TOKENS tokens** |
 | **SFT** | `SFT_STEPS` steps |
-| **Wall-clock total** | `TOTAL_HOURS` h |
-| **Approximate compute** | `COMPUTE` |
+| **Wall-clock total** | 21.58 h |
+| **Approximate compute** | 21.58 h on 1x T4 (measured wall-clock, end to end) |
 
 <p align="center">
   <img src="assets/curve.svg" width="880" alt="Animated chart: training loss falling from 2.90 to 2.33 over 11k steps on one T4">
 </p>
 
 **Compute, honestly.** Standard `6·N·D` over the *active* parameter count gives
-`THEORETICAL_FLOPS` FLOPs — about `THEO_GPUH` GPU-hours of pure matmul at the T4's
+1.05e+16 FLOPs — about 0.36 GPU-hours of pure matmul at the T4's
 8.1 TFLOP/s fp16. Measured wall-clock is roughly **20× that**.
 
 That gap is the result, not a bug. At `d_model=384` the matmuls are too small to saturate
@@ -242,7 +242,7 @@ Accelerate · Weights & Biases *(optional)* · Kaggle Notebooks.
 
 ## Known limitations
 
-- **Undertrained.** `PRETRAIN_TOKENS` tokens is a small fraction of what this model size
+- **Undertrained.** 45,056,000 tokens is a small fraction of what this model size
   wants. The commonsense benchmarks reflect that, not the architecture.
 - **No KV cache.** The pure-PyTorch blocks re-run the full prefix each decode step, so
   generation is slow. Deliberate: it keeps the model dependency-free and

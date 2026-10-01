@@ -1,0 +1,63 @@
+{
+  "model": "/kaggle/output/SUBMIT/model",
+  "tasks": {
+    "hellaswag": {
+      "name": "hellaswag",
+      "sample_len": 500,
+      "acc,none": 0.31,
+      "acc_stderr,none": 0.020704041021724684,
+      "acc_norm,none": 0.33,
+      "acc_norm_stderr,none": 0.02104961216613478
+    },
+    "arc_easy": {
+      "name": "arc_easy",
+      "sample_len": 500,
+      "acc,none": 0.252,
+      "acc_stderr,none": 0.019435727282249564,
+      "acc_norm,none": 0.27,
+      "acc_norm_stderr,none": 0.019874354831287473
+    },
+    "piqa": {
+      "name": "piqa",
+      "sample_len": 500,
+      "acc,none": 0.494,
+      "acc_stderr,none": 0.022381462412439424,
+      "acc_norm,none": 0.5,
+      "acc_norm_stderr,none": 0.022383074051792257
+    },
+    "winogrande": {
+      "name": "winogrande",
+      "sample_len": 500,
+      "acc,none": 0.502,
+      "acc_stderr,none": 0.022382894986483586
+    },
+    "wikitext": {
+      "name": "wikitext",
+      "sample_len": 62,
+      "word_perplexity,none": 809.9983359773555,
+      "word_perplexity_stderr,none": "N/A",
+      "byte_perplexity,none": 3.498654607807493,
+      "byte_perplexity_stderr,none": "N/A",
+      "bits_per_byte,none": 1.8068002466873052,
+      "bits_per_byte_stderr,none": "N/A"
+    }
+  },
+  "summary": {
+    "hellaswag": {
+      "accuracy": 0.31
+    },
+    "arc_easy": {
+      "accuracy": 0.252
+    },
+    "piqa": {
+      "accuracy": 0.494
+    },
+    "winogrande": {
+      "accuracy": 0.502
+    },
+    "wikitext": {
+      "word_perplexity": 809.9983359773555
+    }
+  },
+  "docs_per_task_limit": 500
+}

@@ -118,9 +118,13 @@ def main() -> int:
         missing.append("WIKI_PPL (no results/eval_wikitext103.json)")
 
     # ---- apply -------------------------------------------------------------
-    # placeholders appear both as `KEY` and bare (inside ** ** emphasis runs)
+    # Substitute ONLY delimited placeholders (`KEY` or {KEY}).
+    # A bare text.replace(key, val) also rewrites labels that merely share the
+    # name: it turned the "| ... | PIQA |" column header into "| 50.0 |" and the
+    # "PIQA · HellaSwag" licence row into a number. Every real placeholder in
+    # README.md is backticked, so the bare pass bought nothing and cost accuracy.
     for key, val in sorted(subs.items(), key=lambda kv: -len(kv[0])):
-        text = text.replace(f"`{key}`", val).replace(key, val)
+        text = text.replace(f"`{key}`", val).replace(f"{{{key}}}", val)
 
     left = sorted(set(re.findall(r"`([A-Z][A-Z0-9_]{3,})`", text)))
     unresolved = [k for k in left if k in missing or k not in subs]
