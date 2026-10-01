@@ -1,24 +1,79 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 190"
-     width="880" height="190" role="img" aria-labelledby="t d">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 232"
+     width="900" height="232" role="img" aria-labelledby="t d">
   <title id="t">MiraLM-47M</title>
-  <desc id="d">Animated banner with the parameter budget filling to 47,640,968 of the 50,000,000 cap.</desc>
-  <rect width="880" height="190" fill="#0d1117"/>
+  <desc id="d">Spec-sheet banner: the 47,640,968-parameter budget fills a segmented rule toward the 50,000,000 ceiling.</desc>
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0.00" stop-color="#39c5cf"><animate attributeName="stop-color" values="#39c5cf;#a371f7;#39c5cf" dur="9s" repeatCount="indefinite"/></stop>
-      <stop offset="0.33" stop-color="#a371f7"><animate attributeName="stop-color" values="#a371f7;#f0b429;#a371f7" dur="9s" repeatCount="indefinite"/></stop>
-      <stop offset="0.67" stop-color="#f0b429"><animate attributeName="stop-color" values="#f0b429;#39c5cf;#f0b429" dur="9s" repeatCount="indefinite"/></stop>
-      <stop offset="1.00" stop-color="#39c5cf"><animate attributeName="stop-color" values="#39c5cf;#39c5cf;#39c5cf" dur="9s" repeatCount="indefinite"/></stop>
-    </linearGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
   </defs>
-  <rect x="0" y="52" width="880" height="3" fill="url(#g)"><animate attributeName="x" values="0;880" dur="7s" repeatCount="indefinite"/></rect>
-  <rect x="0" y="52" width="120" height="3" fill="#39c5cf" opacity="0.9"><animate attributeName="x" values="880;-120" dur="3.5s" repeatCount="indefinite"/></rect>
-  <text x="440" y="40" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="46" font-weight="700" fill="#e6edf3" text-anchor="middle">MiraLM-47M</text>
-  <text x="440" y="86" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="15" font-weight="500" fill="#39c5cf" text-anchor="middle">Sparse MoE  x  Mamba  x  GQA  -  47,640,968 params</text>
-  <rect x="300" y="116" width="280" height="10" rx="5" fill="#161b22" stroke="#30363d"/>
-  <rect x="300" y="116" width="0" height="10" rx="5" fill="#f0b429"><animate attributeName="width" values="0;266" dur="1.6s" fill="freeze"/></rect>
-  <text x="288" y="126" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="400" fill="#8b949e" text-anchor="end">0</text>
-  <text x="592" y="126" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="400" fill="#8b949e" text-anchor="start">50M</text>
-  <text x="440" y="150" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="400" fill="#8b949e" text-anchor="middle">47,640,968 trainable  ·  2,359,032 headroom  ·  38,793,608 active</text>
-  <text x="440" y="172" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="400" fill="#3fb950" text-anchor="middle">trained from scratch  ·  no pretrained weights  ·  1x T4  ·  GIBC V2 Track 01</text>
+  <rect width="900" height="232" fill="#f0e9db"/>
+  <rect width="900" height="232" filter="url(#grain)" opacity="0.045"/>
+  <path d="M 14 26 L 14 14 L 26 14" fill="none" stroke="#8f8771" stroke-width="1" stroke-opacity="0.6"/>
+  <path d="M 886 26 L 886 14 L 874 14" fill="none" stroke="#8f8771" stroke-width="1" stroke-opacity="0.6"/>
+  <path d="M 14 206 L 14 218 L 26 218" fill="none" stroke="#8f8771" stroke-width="1" stroke-opacity="0.6"/>
+  <path d="M 886 206 L 886 218 L 874 218" fill="none" stroke="#8f8771" stroke-width="1" stroke-opacity="0.6"/>
+  <circle cx="24" cy="28" r="3.5" fill="#e1491a"><animate attributeName="opacity" values="1;0.25;1" dur="1.8s" repeatCount="indefinite"/></circle>
+  <text x="36" y="32" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" font-weight="400" fill="#8f8771" text-anchor="start" letter-spacing="0.30em">FROM-SCRATCH LANGUAGE MACHINE</text>
+  <text x="876" y="32" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" font-weight="400" fill="#8f8771" text-anchor="end" letter-spacing="0.30em">GIBC V2 · TRACK 01</text>
+  <text x="24" y="88" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', serif" font-size="52" font-weight="700" fill="#1a1711" text-anchor="start">MiraLM-47M</text>
+  <text x="28" y="112" font-family="Georgia, 'Iowan Old Style', 'Times New Roman', serif" font-size="15" font-weight="400" fill="#e1491a" text-anchor="start" font-style="italic">assembled by hand, learned from nothing</text>
+  <line x1="24" y1="132" x2="876" y2="132" stroke="#bcae90" stroke-width="1" stroke-opacity="0.8"/>
+  <text x="24" y="156" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" font-weight="400" fill="#8f8771" text-anchor="start" letter-spacing="0.26em">PARAMETER BUDGET</text>
+  <text x="876" y="156" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" font-weight="400" fill="#8f8771" text-anchor="end" letter-spacing="0.26em">HARD CEILING 50,000,000</text>
+  <line x1="24.00" y1="176" x2="24.00" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="41.04" y1="176" x2="41.04" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="58.08" y1="176" x2="58.08" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="75.12" y1="176" x2="75.12" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="92.16" y1="176" x2="92.16" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="109.20" y1="176" x2="109.20" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="126.24" y1="176" x2="126.24" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="143.28" y1="176" x2="143.28" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="160.32" y1="176" x2="160.32" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="177.36" y1="176" x2="177.36" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="194.40" y1="176" x2="194.40" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="211.44" y1="176" x2="211.44" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="228.48" y1="176" x2="228.48" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="245.52" y1="176" x2="245.52" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="262.56" y1="176" x2="262.56" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="279.60" y1="176" x2="279.60" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="296.64" y1="176" x2="296.64" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="313.68" y1="176" x2="313.68" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="330.72" y1="176" x2="330.72" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="347.76" y1="176" x2="347.76" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="364.80" y1="176" x2="364.80" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="381.84" y1="176" x2="381.84" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="398.88" y1="176" x2="398.88" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="415.92" y1="176" x2="415.92" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="432.96" y1="176" x2="432.96" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="450.00" y1="176" x2="450.00" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="467.04" y1="176" x2="467.04" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="484.08" y1="176" x2="484.08" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="501.12" y1="176" x2="501.12" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="518.16" y1="176" x2="518.16" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="535.20" y1="176" x2="535.20" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="552.24" y1="176" x2="552.24" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="569.28" y1="176" x2="569.28" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="586.32" y1="176" x2="586.32" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="603.36" y1="176" x2="603.36" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="620.40" y1="176" x2="620.40" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="637.44" y1="176" x2="637.44" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="654.48" y1="176" x2="654.48" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="671.52" y1="176" x2="671.52" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="688.56" y1="176" x2="688.56" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="705.60" y1="176" x2="705.60" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="722.64" y1="176" x2="722.64" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="739.68" y1="176" x2="739.68" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="756.72" y1="176" x2="756.72" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="773.76" y1="176" x2="773.76" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="790.80" y1="176" x2="790.80" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="807.84" y1="176" x2="807.84" y2="165" stroke="#e1491a" stroke-width="1.6" stroke-opacity="1.0"/>
+  <line x1="824.88" y1="176" x2="824.88" y2="169" stroke="#bcae90" stroke-width="1.6" stroke-opacity="0.45"/>
+  <line x1="841.92" y1="176" x2="841.92" y2="169" stroke="#bcae90" stroke-width="1.6" stroke-opacity="0.45"/>
+  <line x1="858.96" y1="176" x2="858.96" y2="169" stroke="#bcae90" stroke-width="1.6" stroke-opacity="0.45"/>
+  <line x1="835.8" y1="160" x2="835.8" y2="180" stroke="#e1491a" stroke-width="1.5"><animate attributeName="stroke-opacity" values="1;0.35;1" dur="2s" repeatCount="indefinite"/></line>
+  <text x="24" y="204" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="600" fill="#1a1711" text-anchor="start">47,640,968 trainable</text>
+  <text x="232" y="204" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="600" fill="#175e58" text-anchor="start">38,793,608 active / token</text>
+  <text x="876" y="204" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" font-weight="400" fill="#55503f" text-anchor="end">95 MB fp16 · 1× T4 · 4,096 tok/step</text>
 </svg>

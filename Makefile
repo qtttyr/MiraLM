@@ -21,6 +21,10 @@ params:
 check:
 	$(PY) scripts/check_params.py
 
+## regenerate the README figures (Paper & Ember palette, matches the landing)
+figures:
+	$(PY) scripts/make_readme_figures.py
+
 ## run the test suite
 test:
 	$(PY) -m pytest -q
