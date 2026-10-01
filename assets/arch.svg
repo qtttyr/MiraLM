@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 300"
+     width="880" height="300" role="img" aria-labelledby="t d">
+  <title id="t">Architecture</title>
+  <desc id="d">Animated diagram of the 14-layer hybrid stack and sparse top-2-of-8 MoE routing.</desc>
+  <rect width="880" height="300" fill="#0d1117"/>
+  <text x="28" y="32" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#e6edf3" text-anchor="start">HYBRID STACK</text>
+  <text x="28" y="52" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">Jamba-style alternation, 7 Mamba + 7 attention, then a sparse top-2 MoE capstone</text>
+  <line x1="28" y1="62" x2="852" y2="62" stroke="#30363d"/>
+  <rect x="28" y="74" width="74" height="52" rx="6" fill="#39c5cf" fill-opacity="0.10" stroke="#39c5cf" stroke-opacity="0.55" stroke-width="1"><animate attributeName="fill-opacity" values="0.10;0.42;0.10" dur="3s" begin="0.0s" repeatCount="indefinite"/></rect>
+  <text x="65.0" y="106" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#39c5cf" text-anchor="middle">EMBED</text>
+  <rect x="114" y="74" width="74" height="52" rx="6" fill="#a371f7" fill-opacity="0.10" stroke="#a371f7" stroke-opacity="0.55" stroke-width="1"><animate attributeName="fill-opacity" values="0.10;0.42;0.10" dur="3s" begin="0.18s" repeatCount="indefinite"/></rect>
+  <text x="151.0" y="106" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#a371f7" text-anchor="middle">Mamba</text>
+  <rect x="200" y="74" width="74" height="52" rx="6" fill="#f0b429" fill-opacity="0.10" stroke="#f0b429" stroke-opacity="0.55" stroke-width="1"><animate attributeName="fill-opacity" values="0.10;0.42;0.10" dur="3s" begin="0.36s" repeatCount="indefinite"/></rect>
+  <text x="237.0" y="106" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="10" font-weight="600" fill="#f0b429" text-anchor="middle">Attention</text>
+  <rect x="286" y="74" width="74" height="52" rx="6" fill="#a371f7" fill-opacity="0.10" stroke="#a371f7" stroke-opacity="0.55" stroke-width="1"><animate attributeName="fill-opacity" values="0.10;0.42;0.10" dur="3s" begin="0.54s" repeatCount="indefinite"/></rect>
+  <text x="323.0" y="106" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#a371f7" text-anchor="middle">Mamba</text>
+  <rect x="372" y="74" width="74" height="52" rx="6" fill="#f0b429" fill-opacity="0.10" stroke="#f0b429" stroke-opacity="0.55" stroke-width="1"><animate attributeName="fill-opacity" values="0.10;0.42;0.10" dur="3s" begin="0.72s" repeatCount="indefinite"/></rect>
+  <text x="409.0" y="106" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="10" font-weight="600" fill="#f0b429" text-anchor="middle">Attention</text>
+  <rect x="458" y="74" width="74" height="52" rx="6" fill="#a371f7" fill-opacity="0.10" stroke="#a371f7" stroke-opacity="0.55" stroke-width="1"><animate attributeName="fill-opacity" values="0.10;0.42;0.10" dur="3s" begin="0.8999999999999999s" repeatCount="indefinite"/></rect>
+  <text x="495.0" y="106" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#a371f7" text-anchor="middle">Mamba</text>
+  <rect x="544" y="74" width="74" height="52" rx="6" fill="#f0b429" fill-opacity="0.10" stroke="#f0b429" stroke-opacity="0.55" stroke-width="1"><animate attributeName="fill-opacity" values="0.10;0.42;0.10" dur="3s" begin="1.08s" repeatCount="indefinite"/></rect>
+  <text x="581.0" y="106" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="10" font-weight="600" fill="#f0b429" text-anchor="middle">Attention</text>
+  <rect x="630" y="74" width="74" height="52" rx="6" fill="#39c5cf" fill-opacity="0.10" stroke="#39c5cf" stroke-opacity="0.55" stroke-width="1"><animate attributeName="fill-opacity" values="0.10;0.42;0.10" dur="3s" begin="1.26s" repeatCount="indefinite"/></rect>
+  <text x="667.0" y="106" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#39c5cf" text-anchor="middle">GATE</text>
+  <rect x="716" y="74" width="74" height="52" rx="6" fill="#3fb950" fill-opacity="0.10" stroke="#3fb950" stroke-opacity="0.55" stroke-width="1"><animate attributeName="fill-opacity" values="0.10;0.42;0.10" dur="3s" begin="1.44s" repeatCount="indefinite"/></rect>
+  <text x="753.0" y="106" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#3fb950" text-anchor="middle">MOE x8</text>
+  <rect x="802" y="74" width="74" height="52" rx="6" fill="#39c5cf" fill-opacity="0.10" stroke="#39c5cf" stroke-opacity="0.55" stroke-width="1"><animate attributeName="fill-opacity" values="0.10;0.42;0.10" dur="3s" begin="1.6199999999999999s" repeatCount="indefinite"/></rect>
+  <text x="839.0" y="106" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#39c5cf" text-anchor="middle">HEAD</text>
+  <text x="28" y="182" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="700" fill="#e6edf3" text-anchor="start">ROUTING</text>
+  <text x="28" y="200" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">8 experts, 2 active per token</text>
+  <circle cx="150" cy="170" r="17" fill="#30363d" fill-opacity="0.30"></circle>
+  <text x="150" y="174" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="9" font-weight="700" fill="#8b949e" text-anchor="middle">E0</text>
+  <circle cx="212" cy="170" r="17" fill="#30363d" fill-opacity="0.30"></circle>
+  <text x="212" y="174" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="9" font-weight="700" fill="#8b949e" text-anchor="middle">E1</text>
+  <circle cx="274" cy="170" r="17" fill="#30363d" fill-opacity="0.30"></circle>
+  <text x="274" y="174" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="9" font-weight="700" fill="#8b949e" text-anchor="middle">E2</text>
+  <circle cx="336" cy="170" r="17" fill="#30363d" fill-opacity="0.30"></circle>
+  <text x="336" y="174" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="9" font-weight="700" fill="#8b949e" text-anchor="middle">E3</text>
+  <circle cx="398" cy="170" r="17" fill="#3fb950" fill-opacity="0.9"><animate attributeName="fill-opacity" values="0.25;0.95;0.25" dur="1.6s" begin="0.48s" repeatCount="indefinite"/></circle>
+  <text x="398" y="174" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="9" font-weight="700" fill="#0d1117" text-anchor="middle">E4</text>
+  <circle cx="460" cy="170" r="17" fill="#30363d" fill-opacity="0.30"></circle>
+  <text x="460" y="174" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="9" font-weight="700" fill="#8b949e" text-anchor="middle">E5</text>
+  <circle cx="522" cy="170" r="17" fill="#3fb950" fill-opacity="0.9"><animate attributeName="fill-opacity" values="0.25;0.95;0.25" dur="1.6s" begin="0.72s" repeatCount="indefinite"/></circle>
+  <text x="522" y="174" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="9" font-weight="700" fill="#0d1117" text-anchor="middle">E6</text>
+  <circle cx="584" cy="170" r="17" fill="#30363d" fill-opacity="0.30"></circle>
+  <text x="584" y="174" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="9" font-weight="700" fill="#8b949e" text-anchor="middle">E7</text>
+  <path d="M 398 152 L 760 126" stroke="#3fb950" stroke-width="1.2" stroke-opacity="0.5" fill="none" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="16" to="0" dur="0.9s" repeatCount="indefinite"/></path>
+  <path d="M 522 152 L 760 126" stroke="#3fb950" stroke-width="1.2" stroke-opacity="0.5" fill="none" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="16" to="0" dur="0.9s" repeatCount="indefinite"/></path>
+  <rect x="760" y="102" width="92" height="48" rx="6" fill="#3fb950" fill-opacity="0.12" stroke="#3fb950" stroke-opacity="0.6"/>
+  <text x="806" y="120" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="700" fill="#3fb950" text-anchor="middle">top-2</text>
+  <text x="806" y="138" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="10" font-weight="400" fill="#8b949e" text-anchor="middle">SwiGLU</text>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 250"
+     width="880" height="250" role="img" aria-labelledby="t d">
+  <title id="t">Parameter budget</title>
+  <desc id="d">Animated breakdown of the 47,640,968 parameters by component against the 50,000,000 cap.</desc>
+  <rect width="880" height="250" fill="#0d1117"/>
+  <text x="28" y="30" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#e6edf3" text-anchor="start">PARAMETER BUDGET</text>
+  <text x="852" y="30" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="400" fill="#8b949e" text-anchor="end">50,000,000 hard cap</text>
+  <rect x="28" y="58" width="0" height="22" rx="3" fill="#39c5cf" opacity="0.85"><animate attributeName="width" from="0" to="88" dur="0.9s" begin="0.0s" fill="freeze"/></rect>
+  <text x="28" y="53" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">Embedding (tied, shared with lm_head)</text>
+  <text x="126" y="74" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#e6edf3" text-anchor="start">9,216,000</text>
+  <rect x="28" y="94" width="0" height="22" rx="3" fill="#a371f7" opacity="0.85"><animate attributeName="width" from="0" to="67" dur="0.9s" begin="0.13s" fill="freeze"/></rect>
+  <text x="28" y="89" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">Mamba blocks  x7</text>
+  <text x="105" y="110" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#e6edf3" text-anchor="start">7,007,616</text>
+  <rect x="28" y="130" width="0" height="22" rx="3" fill="#f0b429" opacity="0.85"><animate attributeName="width" from="0" to="188" dur="0.9s" begin="0.26s" fill="freeze"/></rect>
+  <text x="28" y="125" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">Attention + SwiGLU  x7</text>
+  <text x="226" y="146" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#e6edf3" text-anchor="start">19,617,024</text>
+  <rect x="28" y="166" width="0" height="22" rx="3" fill="#3fb950" opacity="0.85"><animate attributeName="width" from="0" to="113" dur="0.9s" begin="0.39s" fill="freeze"/></rect>
+  <text x="28" y="161" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">MoE experts  x8 (top-2 active)</text>
+  <text x="151" y="182" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#e6edf3" text-anchor="start">11,796,480</text>
+  <rect x="28" y="202" width="0" height="22" rx="3" fill="#8b949e" opacity="0.85"><animate attributeName="width" from="0" to="2" dur="0.9s" begin="0.52s" fill="freeze"/></rect>
+  <text x="28" y="197" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">Router + norms</text>
+  <text x="40" y="218" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#e6edf3" text-anchor="start">3,848</text>
+  <line x1="28" y1="232" x2="508" y2="232" stroke="#30363d"/>
+  <rect x="28" y="238" width="480" height="24" rx="4" fill="none" stroke="#f0b429" stroke-width="1.5"/>
+  <text x="28" y="278" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#f0b429" text-anchor="start">total 47,640,968   ·   PASS   ·   projection == torch numel()</text>
+  <text x="852" y="278" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="end">enforced twice: static + real model</text>
+</svg>

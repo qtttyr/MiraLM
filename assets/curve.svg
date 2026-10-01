@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 300"
+     width="880" height="300" role="img" aria-labelledby="t d">
+  <title id="t">Training loss</title>
+  <desc id="d">Animated chart of training loss falling from 2.90 to 2.33.</desc>
+  <rect width="880" height="300" fill="#0d1117"/>
+  <text x="28" y="26" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#e6edf3" text-anchor="start">TRAINING LOSS</text>
+  <text x="28" y="44" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">11k steps on 1x T4, single consumer GPU</text>
+  <line x1="60" y1="250.0" x2="580" y2="250.0" stroke="#30363d" stroke-opacity="0.5"/>
+  <text x="50" y="254.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="10" font-weight="400" fill="#8b949e" text-anchor="end">2.2</text>
+  <line x1="60" y1="197.5" x2="580" y2="197.5" stroke="#30363d" stroke-opacity="0.5"/>
+  <text x="50" y="201.50000000000006" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="10" font-weight="400" fill="#8b949e" text-anchor="end">2.4</text>
+  <line x1="60" y1="145.0" x2="580" y2="145.0" stroke="#30363d" stroke-opacity="0.5"/>
+  <text x="50" y="149.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="10" font-weight="400" fill="#8b949e" text-anchor="end">2.6</text>
+  <line x1="60" y1="92.5" x2="580" y2="92.5" stroke="#30363d" stroke-opacity="0.5"/>
+  <text x="50" y="96.50000000000006" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="10" font-weight="400" fill="#8b949e" text-anchor="end">2.8</text>
+  <line x1="60" y1="40.0" x2="580" y2="40.0" stroke="#30363d" stroke-opacity="0.5"/>
+  <text x="50" y="44.0" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="10" font-weight="400" fill="#8b949e" text-anchor="end">3.0</text>
+  <path d="M 60.0 66.3 L 84.8 79.4 L 109.5 92.5 L 134.3 97.8 L 159.0 113.5 L 183.8 118.7 L 208.6 129.2 L 233.3 134.5 L 258.1 142.4 L 282.9 147.6 L 307.6 155.5 L 332.4 160.8 L 357.1 168.6 L 381.9 173.9 L 406.7 179.1 L 431.4 184.4 L 456.2 189.6 L 481.0 194.9 L 505.7 200.1 L 530.5 205.4 L 555.2 210.6 L 580.0 215.9" fill="none" stroke="#39c5cf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="580.0" cy="215.9" r="4" fill="#39c5cf"><animate attributeName="r" values="3;6;3" dur="2s" repeatCount="indefinite"/></circle>
+  <text x="594.0" y="219.87500000000003" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#39c5cf" text-anchor="start">2.33</text>
+  <line x1="60" y1="250" x2="580" y2="250" stroke="#30363d"/>
+  <text x="650" y="64" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="700" fill="#e6edf3" text-anchor="start">WHAT MOVED</text>
+  <text x="650" y="92" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">params</text>
+  <text x="852" y="92" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#f0b429" text-anchor="end">47,640,968</text>
+  <text x="650" y="118" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">active/token</text>
+  <text x="852" y="118" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#3fb950" text-anchor="end">38,793,608</text>
+  <text x="650" y="144" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">experts</text>
+  <text x="852" y="144" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#a371f7" text-anchor="end">8 → 2</text>
+  <text x="650" y="170" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">guide anneal</text>
+  <text x="852" y="170" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#39c5cf" text-anchor="end">2000 steps</text>
+  <text x="650" y="196" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">hardware</text>
+  <text x="852" y="196" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#e6edf3" text-anchor="end">1× T4</text>
+  <text x="650" y="222" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#8b949e" text-anchor="start">from scratch</text>
+  <text x="852" y="222" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="600" fill="#3fb950" text-anchor="end">yes</text>
+</svg>
